@@ -37,7 +37,7 @@ COLLATE = utf8mb4_0900_ai_ci;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `logitrack_db`.`auditoria` (
   `id` BIGINT NOT NULL AUTO_INCREMENT,
-  `operacion` ENUM('INSERT', 'UPDATE', 'DELETE') NOT NULL,
+  `operacion` ENUM('insert', 'update', 'delete') NOT NULL,
   `fecha` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `usuario_fk` BIGINT NULL DEFAULT NULL,
   `entidad` VARCHAR(45) NOT NULL,
@@ -172,7 +172,7 @@ COLLATE = utf8mb4_0900_ai_ci;
 CREATE TABLE IF NOT EXISTS `logitrack_db`.`movimiento` (
   `id` BIGINT NOT NULL AUTO_INCREMENT,
   `fecha` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `tipo_movimiento` ENUM('ENTRADA', 'SALIDA', 'TRANSFERENCIA') NOT NULL,
+  `tipo_movimiento` ENUM('entrada', 'salida', 'transferencia') NOT NULL,
   `usuario_fk` BIGINT NOT NULL,
   `bodega_origen_fk` BIGINT NULL DEFAULT NULL,
   `bodega_destino_fk` BIGINT NULL DEFAULT NULL,

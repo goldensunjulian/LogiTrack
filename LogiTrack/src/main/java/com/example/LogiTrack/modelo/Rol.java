@@ -7,18 +7,14 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name="usuario")
-@Setter @Getter @NoArgsConstructor @AllArgsConstructor
+@Table(name = "rol")
+@Getter @Setter
+@AllArgsConstructor @NoArgsConstructor
 
-public class usuario {
+public class Rol {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(nullable = false, length = 150)
+    @Column (nullable = false, length = 50)
     private String nombre;
-    @Column(nullable = false, length = 225)
-    private String email;
-    @Column(nullable = false)
-    private boolean activo;
-
 }
