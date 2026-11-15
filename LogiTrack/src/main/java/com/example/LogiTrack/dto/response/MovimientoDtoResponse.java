@@ -1,4 +1,15 @@
 package com.example.LogiTrack.dto.response;
 
-public record MovimientoDtoResponse() {
+import com.example.LogiTrack.modelo.TipoMovimiento;
+
+import java.time.LocalDateTime;
+
+public record MovimientoDtoResponse(
+        Long id,
+        LocalDateTime fecha,
+        TipoMovimiento tipoMovimiento,
+        UsuarioDtoResponse usuario,
+        BodegaDtoResponse bodegaOrigen,
+        BodegaDtoResponse bodegaDestino
+) {
 }

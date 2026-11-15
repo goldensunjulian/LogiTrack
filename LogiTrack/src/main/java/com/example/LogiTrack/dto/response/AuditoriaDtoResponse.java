@@ -1,4 +1,17 @@
 package com.example.LogiTrack.dto.response;
 
-public record AuditoriaDtoResponse() {
+import com.example.LogiTrack.modelo.TipoOperacion;
+
+import java.time.LocalDateTime;
+
+public record AuditoriaDtoResponse(
+        Long id,
+        TipoOperacion operacion,
+        LocalDateTime fecha,
+        UsuarioDtoResponse usuario,
+        String entidad,
+        Long entidadId,
+        String valoresAntes,
+        String valoresDespues
+) {
 }
