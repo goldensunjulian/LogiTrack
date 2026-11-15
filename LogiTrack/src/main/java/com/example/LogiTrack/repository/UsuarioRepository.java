@@ -11,11 +11,14 @@ import java.util.List;
 @Repository
 
 public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
+    // Para mirar usuarios activos
     List<Usuario> findByActivoTrue();
+
+    // Para que no tomen el mismo email
     boolean existsByEmail(String email);
 
 
-
+    // Para filtrar usuarios por su rol
     @Query( value = "SELECT u.* FROM usuario u " +
                     "INNER JOIN credenciales c ON u.id = c.usuario_fk " +
                     "INNER JOIN rol r ON c.rol_fk = r.id " +
