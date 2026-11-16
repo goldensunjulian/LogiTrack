@@ -7,6 +7,7 @@ import com.example.LogiTrack.dto.response.UsuarioDtoResponse;
 import com.example.LogiTrack.exception.BussinesRuleException;
 import com.example.LogiTrack.exception.DatabaseRuleException;
 import com.example.LogiTrack.mapper.CredencialesMapper;
+import com.example.LogiTrack.mapper.RolMapper;
 import com.example.LogiTrack.mapper.UsuarioMapper;
 import com.example.LogiTrack.modelo.Credenciales;
 import com.example.LogiTrack.modelo.Rol;
@@ -16,7 +17,6 @@ import com.example.LogiTrack.repository.RolRepository;
 import com.example.LogiTrack.repository.UsuarioRepository;
 import com.example.LogiTrack.service.CredencialesService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -30,12 +30,7 @@ public class CredencialesServiceImpl implements CredencialesService {
     private final UsuarioRepository usuarioRepository;
     private final UsuarioMapper usuarioMapper;
     private final RolRepository rolRepository;
-    private final BCryptPasswordEncoder passwordEncoder;
-
-    // Convierte Rol a RolDtoResponse directamente sin mapper
-    private RolDtoResponse toRolDto(Rol rol) {
-        return new RolDtoResponse(rol.getId(), rol.getNombre());
-    }
+    private final RolMapper rolMapper;
 
     @Override
     public CredencialesDtoResponse guardar(CredencialesDtoRequest dto) {
@@ -46,10 +41,9 @@ public class CredencialesServiceImpl implements CredencialesService {
         Rol rol = rolRepository.findById(dto.rolId())
                 .orElseThrow(() -> new DatabaseRuleException("Rol no encontrado"));
         Credenciales credenciales = credencialesMapper.dtoToEntity(dto, usuario, rol);
-        // Hashear la contraseña antes de guardar
-        credenciales.setPassword(passwordEncoder.encode(dto.password()));
         UsuarioDtoResponse usuarioDto = usuarioMapper.entityToDto(usuario);
-        return credencialesMapper.entityToDto(credencialesRepository.save(credenciales), usuarioDto, toRolDto(rol));
+        RolDtoResponse rolDto = rolMapper.entityToDto(rol);
+        return credencialesMapper.entityToDto(credencialesRepository.save(credenciales), usuarioDto, rolDto);
     }
 
     @Override
@@ -60,7 +54,8 @@ public class CredencialesServiceImpl implements CredencialesService {
                 .orElseThrow(() -> new DatabaseRuleException("Rol no encontrado"));
         credencialesMapper.updateEntityFromDto(credenciales, dto, rol);
         UsuarioDtoResponse usuarioDto = usuarioMapper.entityToDto(credenciales.getUsuario());
-        return credencialesMapper.entityToDto(credencialesRepository.save(credenciales), usuarioDto, toRolDto(rol));
+        RolDtoResponse rolDto = rolMapper.entityToDto(rol);
+        return credencialesMapper.entityToDto(credencialesRepository.save(credenciales), usuarioDto, rolDto);
     }
 
     @Override
@@ -72,7 +67,6 @@ public class CredencialesServiceImpl implements CredencialesService {
 
     @Override
     public void eliminarPorUsuario(Long usuarioId) {
-        // Se llama cuando se despide a un empleado — borra sus credenciales para que no pueda loguearse
         Credenciales credenciales = credencialesRepository.findByUsuarioId(usuarioId);
         if (credenciales == null)
             throw new DatabaseRuleException("No se encontraron credenciales para ese usuario");
@@ -84,7 +78,7 @@ public class CredencialesServiceImpl implements CredencialesService {
         return credencialesRepository.findAll().stream().map(c ->
                 credencialesMapper.entityToDto(c,
                         usuarioMapper.entityToDto(c.getUsuario()),
-                        toRolDto(c.getRol()))
+                        rolMapper.entityToDto(c.getRol()))
         ).toList();
     }
 
@@ -94,6 +88,6 @@ public class CredencialesServiceImpl implements CredencialesService {
                 .orElseThrow(() -> new DatabaseRuleException("Credenciales no encontradas"));
         return credencialesMapper.entityToDto(credenciales,
                 usuarioMapper.entityToDto(credenciales.getUsuario()),
-                toRolDto(credenciales.getRol()));
+                rolMapper.entityToDto(credenciales.getRol()));
     }
 }

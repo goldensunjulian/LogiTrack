@@ -221,3 +221,33 @@ SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
 
+
+-- -----------------------------------------------------
+-- Data inicial
+-- -----------------------------------------------------
+
+-- Roles del sistema (estáticos, no se crean desde la API)
+INSERT INTO `logitrack_db`.`rol` (`nombre`) VALUES ('ADMIN');
+INSERT INTO `logitrack_db`.`rol` (`nombre`) VALUES ('EMPLEADO');
+
+-- Categorías de ejemplo
+INSERT INTO `logitrack_db`.`categoria` (`nombre`) VALUES ('Electrónica');
+INSERT INTO `logitrack_db`.`categoria` (`nombre`) VALUES ('Herramientas');
+INSERT INTO `logitrack_db`.`categoria` (`nombre`) VALUES ('Papelería');
+
+-- Primer admin — creado directo en BD, es el único que no pasa por la API
+INSERT INTO `logitrack_db`.`usuario` (`nombre`, `email`, `activo`) VALUES ('Julian', 'tristan@gmail.com', 1);
+
+-- Credenciales del admin (usuario id=1, rol id=1 que es ADMIN)
+INSERT INTO `logitrack_db`.`credenciales` (`username`, `password`, `usuario_fk`, `rol_fk`) VALUES ('julian', '1234', 1, 1);
+
+-- Empleado de ejemplo
+INSERT INTO `logitrack_db`.`usuario` (`nombre`, `email`, `activo`) VALUES ('Carlos López', 'carlos@gmail.com', 1);
+
+-- Credenciales del empleado (usuario id=2, rol id=2 que es EMPLEADO)
+INSERT INTO `logitrack_db`.`credenciales` (`username`, `password`, `usuario_fk`, `rol_fk`) VALUES ('carlos', '1234', 2, 2);
+
+-- Productos de ejemplo
+INSERT INTO `logitrack_db`.`producto` (`nombre`, `categoria_fk`, `precio`, `activo`) VALUES ('Monitor 24"', 1, 850000.00, 1);
+INSERT INTO `logitrack_db`.`producto` (`nombre`, `categoria_fk`, `precio`, `activo`) VALUES ('Taladro Industrial', 2, 320000.00, 1);
+INSERT INTO `logitrack_db`.`producto` (`nombre`, `categoria_fk`, `precio`, `activo`) VALUES ('Resma de Papel', 3, 15000.00, 1);
