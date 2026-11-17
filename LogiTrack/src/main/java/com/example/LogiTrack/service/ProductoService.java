@@ -11,6 +11,7 @@ public interface ProductoService {
     ProductoDtoResponse guardar(ProductoDtoRequest dto);
     ProductoDtoResponse actualizar(ProductoDtoRequest dto, Long id);
     void eliminar(Long id);
+    void activar(Long id);
     List<ProductoDtoResponse> listar();
     ProductoDtoResponse buscarId(Long id);
     List<ProductoDtoResponse> listarActivos();

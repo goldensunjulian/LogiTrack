@@ -11,6 +11,7 @@ public interface UsuarioService {
     UsuarioDtoResponse guardar(UsuarioDtoRequest dto);
     UsuarioDtoResponse actualizar(UsuarioDtoRequest dto, Long id);
     void eliminar(Long id);
+    void activar(Long id);
     List<UsuarioDtoResponse> listar();
     UsuarioDtoResponse buscarId(Long id);
     List<UsuarioDtoResponse> listarActivos();

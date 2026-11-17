@@ -90,4 +90,15 @@ public class UsuarioController {
         usuarioService.eliminar(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
+
+    @Operation(summary = "Activar usuario", description = "Reactiva un usuario que estaba inactivo")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Usuario activado correctamente"),
+            @ApiResponse(responseCode = "404", description = "Usuario no encontrado")
+    })
+    @PatchMapping("/{id}/activar")
+    public ResponseEntity<Void> activar(@PathVariable Long id) {
+        usuarioService.activar(id);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
 }

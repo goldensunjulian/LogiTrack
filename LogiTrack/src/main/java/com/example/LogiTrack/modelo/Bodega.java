@@ -1,5 +1,4 @@
 package com.example.LogiTrack.modelo;
-
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -8,11 +7,9 @@ import lombok.Setter;
 
 @Entity
 @Table(name = "bodega")
-@Getter
-@Setter
+@Getter @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-
 public class Bodega {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,10 +22,9 @@ public class Bodega {
     private String direccion;
     @Column(nullable = false)
     private Integer capacidad;
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "usuario_encargado_fk")
     private Usuario usuarioEncargado;
     @Column(nullable = false)
     private Boolean activado;
-
 }

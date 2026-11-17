@@ -11,11 +11,14 @@ import com.example.LogiTrack.mapper.RolMapper;
 import com.example.LogiTrack.mapper.UsuarioMapper;
 import com.example.LogiTrack.modelo.Credenciales;
 import com.example.LogiTrack.modelo.Rol;
+import com.example.LogiTrack.modelo.TipoOperacion;
 import com.example.LogiTrack.modelo.Usuario;
 import com.example.LogiTrack.repository.CredencialesRepository;
 import com.example.LogiTrack.repository.RolRepository;
 import com.example.LogiTrack.repository.UsuarioRepository;
+import com.example.LogiTrack.service.AuditoriaService;
 import com.example.LogiTrack.service.CredencialesService;
+import com.example.LogiTrack.util.JsonUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -31,6 +34,8 @@ public class CredencialesServiceImpl implements CredencialesService {
     private final UsuarioMapper usuarioMapper;
     private final RolRepository rolRepository;
     private final RolMapper rolMapper;
+    private final AuditoriaService auditoriaService;
+    private final JsonUtil jsonUtil;
 
     @Override
     public CredencialesDtoResponse guardar(CredencialesDtoRequest dto) {
@@ -41,27 +46,29 @@ public class CredencialesServiceImpl implements CredencialesService {
         Rol rol = rolRepository.findById(dto.rolId())
                 .orElseThrow(() -> new DatabaseRuleException("Rol no encontrado"));
         Credenciales credenciales = credencialesMapper.dtoToEntity(dto, usuario, rol);
-        UsuarioDtoResponse usuarioDto = usuarioMapper.entityToDto(usuario);
-        RolDtoResponse rolDto = rolMapper.entityToDto(rol);
-        return credencialesMapper.entityToDto(credencialesRepository.save(credenciales), usuarioDto, rolDto);
+        credencialesRepository.save(credenciales);
+        auditoriaService.registrar(TipoOperacion.insert, "credenciales", credenciales.getId(), null, null, jsonUtil.toJson(credenciales));
+        return credencialesMapper.entityToDto(credenciales, usuarioMapper.entityToDto(usuario), rolMapper.entityToDto(rol));
     }
 
     @Override
     public CredencialesDtoResponse actualizar(CredencialesDtoRequest dto, Long id) {
         Credenciales credenciales = credencialesRepository.findById(id)
                 .orElseThrow(() -> new DatabaseRuleException("Credenciales no encontradas"));
+        String antes = jsonUtil.toJson(credenciales);
         Rol rol = rolRepository.findById(dto.rolId())
                 .orElseThrow(() -> new DatabaseRuleException("Rol no encontrado"));
         credencialesMapper.updateEntityFromDto(credenciales, dto, rol);
-        UsuarioDtoResponse usuarioDto = usuarioMapper.entityToDto(credenciales.getUsuario());
-        RolDtoResponse rolDto = rolMapper.entityToDto(rol);
-        return credencialesMapper.entityToDto(credencialesRepository.save(credenciales), usuarioDto, rolDto);
+        credencialesRepository.save(credenciales);
+        auditoriaService.registrar(TipoOperacion.update, "credenciales", credenciales.getId(), null, antes, jsonUtil.toJson(credenciales));
+        return credencialesMapper.entityToDto(credenciales, usuarioMapper.entityToDto(credenciales.getUsuario()), rolMapper.entityToDto(rol));
     }
 
     @Override
     public void eliminar(Long id) {
         Credenciales credenciales = credencialesRepository.findById(id)
                 .orElseThrow(() -> new DatabaseRuleException("Credenciales no encontradas"));
+        auditoriaService.registrar(TipoOperacion.delete, "credenciales", credenciales.getId(), null, jsonUtil.toJson(credenciales), null);
         credencialesRepository.delete(credenciales);
     }
 
@@ -70,6 +77,7 @@ public class CredencialesServiceImpl implements CredencialesService {
         Credenciales credenciales = credencialesRepository.findByUsuarioId(usuarioId);
         if (credenciales == null)
             throw new DatabaseRuleException("No se encontraron credenciales para ese usuario");
+        auditoriaService.registrar(TipoOperacion.delete, "credenciales", credenciales.getId(), null, jsonUtil.toJson(credenciales), null);
         credencialesRepository.delete(credenciales);
     }
 

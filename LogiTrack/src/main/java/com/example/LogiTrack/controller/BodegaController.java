@@ -81,4 +81,15 @@ public class BodegaController {
         bodegaService.eliminar(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
+
+    @Operation(summary = "Activar bodega", description = "Reactiva una bodega que estaba inactiva")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Bodega activada correctamente"),
+            @ApiResponse(responseCode = "404", description = "Bodega no encontrada")
+    })
+    @PatchMapping("/{id}/activar")
+    public ResponseEntity<Void> activar(@PathVariable Long id) {
+        bodegaService.activar(id);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
 }

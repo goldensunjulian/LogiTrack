@@ -6,9 +6,12 @@ import com.example.LogiTrack.mapper.AuditoriaMapper;
 import com.example.LogiTrack.mapper.UsuarioMapper;
 import com.example.LogiTrack.modelo.Auditoria;
 import com.example.LogiTrack.modelo.TipoOperacion;
+import com.example.LogiTrack.modelo.Usuario;
 import com.example.LogiTrack.repository.AuditoriaRepository;
+import com.example.LogiTrack.repository.CredencialesRepository;
 import com.example.LogiTrack.service.AuditoriaService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,6 +23,26 @@ public class AuditoriaServiceImpl implements AuditoriaService {
     private final AuditoriaRepository auditoriaRepository;
     private final AuditoriaMapper auditoriaMapper;
     private final UsuarioMapper usuarioMapper;
+    private final CredencialesRepository credencialesRepository;
+
+    // Obtiene el usuario logueado desde el token JWT
+    private Usuario getUsuarioActual() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        return credencialesRepository.findByUsername(username).getUsuario();
+    }
+
+    @Override
+    public void registrar(TipoOperacion operacion, String entidad, Long entidadId,
+                          Usuario usuario, String valoresAntes, String valoresDespues) {
+        Auditoria auditoria = new Auditoria();
+        auditoria.setTipoOperacion(operacion);
+        auditoria.setEntidad(entidad);
+        auditoria.setEntidadId(entidadId);
+        auditoria.setUsuario(usuario != null ? usuario : getUsuarioActual());
+        auditoria.setValoresAntes(valoresAntes);
+        auditoria.setValoresDespues(valoresDespues);
+        auditoriaRepository.save(auditoria);
+    }
 
     @Override
     public List<AuditoriaDtoResponse> listar() {

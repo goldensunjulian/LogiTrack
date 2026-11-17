@@ -13,10 +13,13 @@ import com.example.LogiTrack.mapper.UsuarioMapper;
 import com.example.LogiTrack.modelo.Bodega;
 import com.example.LogiTrack.modelo.Inventario;
 import com.example.LogiTrack.modelo.Producto;
+import com.example.LogiTrack.modelo.TipoOperacion;
 import com.example.LogiTrack.repository.BodegaRepository;
 import com.example.LogiTrack.repository.InventarioRepository;
 import com.example.LogiTrack.repository.ProductoRepository;
+import com.example.LogiTrack.service.AuditoriaService;
 import com.example.LogiTrack.service.InventarioService;
+import com.example.LogiTrack.util.JsonUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -36,6 +39,8 @@ public class InventarioServiceImpl implements InventarioService {
     private final ProductoMapper productoMapper;
     private final CategoriaMapper categoriaMapper;
     private final UsuarioMapper usuarioMapper;
+    private final AuditoriaService auditoriaService;
+    private final JsonUtil jsonUtil;
 
     private BodegaDtoResponse toBodegaDto(Bodega b) {
         return bodegaMapper.entityToDto(b,
@@ -53,22 +58,27 @@ public class InventarioServiceImpl implements InventarioService {
         Producto producto = productoRepository.findById(dto.productoId())
                 .orElseThrow(() -> new DatabaseRuleException("Producto no encontrado"));
         Inventario inventario = inventarioMapper.dtoToEntity(dto, bodega, producto);
-        return inventarioMapper.entityToDto(inventarioRepository.save(inventario), toBodegaDto(bodega), toProductoDto(producto));
+        inventarioRepository.save(inventario);
+        auditoriaService.registrar(TipoOperacion.insert, "inventario", inventario.getId(), null, null, jsonUtil.toJson(inventario));
+        return inventarioMapper.entityToDto(inventario, toBodegaDto(bodega), toProductoDto(producto));
     }
 
     @Override
     public InventarioDtoResponse actualizar(InventarioDtoRequest dto, Long id) {
         Inventario inventario = inventarioRepository.findById(id)
                 .orElseThrow(() -> new DatabaseRuleException("Inventario no encontrado"));
+        String antes = jsonUtil.toJson(inventario);
         inventarioMapper.updateEntityFromDto(inventario, dto);
-        return inventarioMapper.entityToDto(inventarioRepository.save(inventario),
-                toBodegaDto(inventario.getBodega()), toProductoDto(inventario.getProducto()));
+        inventarioRepository.save(inventario);
+        auditoriaService.registrar(TipoOperacion.update, "inventario", inventario.getId(), null, antes, jsonUtil.toJson(inventario));
+        return inventarioMapper.entityToDto(inventario, toBodegaDto(inventario.getBodega()), toProductoDto(inventario.getProducto()));
     }
 
     @Override
     public void eliminar(Long id) {
         Inventario inventario = inventarioRepository.findById(id)
                 .orElseThrow(() -> new DatabaseRuleException("Inventario no encontrado"));
+        auditoriaService.registrar(TipoOperacion.delete, "inventario", inventario.getId(), null, jsonUtil.toJson(inventario), null);
         inventarioRepository.delete(inventario);
     }
 

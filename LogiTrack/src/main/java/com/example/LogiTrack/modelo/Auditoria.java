@@ -24,7 +24,7 @@ public class Auditoria {
     private TipoOperacion tipoOperacion;
     @Column(nullable = false, insertable = false, updatable = false)
     private LocalDateTime fecha;
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(nullable = false, name = "usuario_fk")
     private Usuario usuario;
     @Column(nullable = false, length = 50)

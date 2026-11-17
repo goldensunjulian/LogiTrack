@@ -9,9 +9,12 @@ import com.example.LogiTrack.mapper.CategoriaMapper;
 import com.example.LogiTrack.mapper.ProductoMapper;
 import com.example.LogiTrack.modelo.Categoria;
 import com.example.LogiTrack.modelo.Producto;
+import com.example.LogiTrack.modelo.TipoOperacion;
 import com.example.LogiTrack.repository.CategoriaRepository;
 import com.example.LogiTrack.repository.ProductoRepository;
+import com.example.LogiTrack.service.AuditoriaService;
 import com.example.LogiTrack.service.ProductoService;
+import com.example.LogiTrack.util.JsonUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -25,6 +28,8 @@ public class ProductoServiceImpl implements ProductoService {
     private final ProductoMapper productoMapper;
     private final CategoriaRepository categoriaRepository;
     private final CategoriaMapper categoriaMapper;
+    private final AuditoriaService auditoriaService;
+    private final JsonUtil jsonUtil;
 
     @Override
     public ProductoDtoResponse guardar(ProductoDtoRequest dto) {
@@ -33,28 +38,42 @@ public class ProductoServiceImpl implements ProductoService {
         Categoria categoria = categoriaRepository.findById(dto.categoriaId())
                 .orElseThrow(() -> new DatabaseRuleException("Categoría no encontrada"));
         Producto producto = productoMapper.dtoToEntity(dto, categoria);
-        CategoriaDtoResponse categoriaDto = categoriaMapper.entityToDto(categoria);
-        return productoMapper.entityToDto(productoRepository.save(producto), categoriaDto);
+        productoRepository.save(producto);
+        auditoriaService.registrar(TipoOperacion.insert, "producto", producto.getId(), null, null, jsonUtil.toJson(producto));
+        return productoMapper.entityToDto(producto, categoriaMapper.entityToDto(categoria));
     }
 
     @Override
     public ProductoDtoResponse actualizar(ProductoDtoRequest dto, Long id) {
         Producto producto = productoRepository.findById(id)
                 .orElseThrow(() -> new DatabaseRuleException("Producto no encontrado"));
+        String antes = jsonUtil.toJson(producto);
         Categoria categoria = categoriaRepository.findById(dto.categoriaId())
                 .orElseThrow(() -> new DatabaseRuleException("Categoría no encontrada"));
         productoMapper.updateEntityFromDto(producto, dto, categoria);
-        CategoriaDtoResponse categoriaDto = categoriaMapper.entityToDto(categoria);
-        return productoMapper.entityToDto(productoRepository.save(producto), categoriaDto);
+        productoRepository.save(producto);
+        auditoriaService.registrar(TipoOperacion.update, "producto", producto.getId(), null, antes, jsonUtil.toJson(producto));
+        return productoMapper.entityToDto(producto, categoriaMapper.entityToDto(categoria));
     }
 
     @Override
     public void eliminar(Long id) {
-        // Soft delete — se desactiva para no romper el historial de movimientos
         Producto producto = productoRepository.findById(id)
                 .orElseThrow(() -> new DatabaseRuleException("Producto no encontrado"));
+        String antes = jsonUtil.toJson(producto);
         producto.setActivo(false);
         productoRepository.save(producto);
+        auditoriaService.registrar(TipoOperacion.update, "producto", producto.getId(), null, antes, jsonUtil.toJson(producto));
+    }
+
+    @Override
+    public void activar(Long id) {
+        Producto producto = productoRepository.findById(id)
+                .orElseThrow(() -> new DatabaseRuleException("Producto no encontrado"));
+        String antes = jsonUtil.toJson(producto);
+        producto.setActivo(true);
+        productoRepository.save(producto);
+        auditoriaService.registrar(TipoOperacion.update, "producto", producto.getId(), null, antes, jsonUtil.toJson(producto));
     }
 
     @Override

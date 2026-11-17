@@ -11,6 +11,7 @@ public interface BodegaService {
     BodegaDtoResponse guardar(BodegaDtoRequest dto);
     BodegaDtoResponse actualizar(BodegaDtoRequest dto, Long id);
     void eliminar(Long id);
+    void activar(Long id);
     List<BodegaDtoResponse> listar();
     BodegaDtoResponse buscarId(Long id);
     List<BodegaDtoResponse> listarActivas();

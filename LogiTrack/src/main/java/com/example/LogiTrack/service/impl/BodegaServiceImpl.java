@@ -8,10 +8,13 @@ import com.example.LogiTrack.exception.DatabaseRuleException;
 import com.example.LogiTrack.mapper.BodegaMapper;
 import com.example.LogiTrack.mapper.UsuarioMapper;
 import com.example.LogiTrack.modelo.Bodega;
+import com.example.LogiTrack.modelo.TipoOperacion;
 import com.example.LogiTrack.modelo.Usuario;
 import com.example.LogiTrack.repository.BodegaRepository;
 import com.example.LogiTrack.repository.UsuarioRepository;
+import com.example.LogiTrack.service.AuditoriaService;
 import com.example.LogiTrack.service.BodegaService;
+import com.example.LogiTrack.util.JsonUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -25,70 +28,79 @@ public class BodegaServiceImpl implements BodegaService {
     private final BodegaMapper bodegaMapper;
     private final UsuarioRepository usuarioRepository;
     private final UsuarioMapper usuarioMapper;
+    private final AuditoriaService auditoriaService;
+    private final JsonUtil jsonUtil;
+
+    private BodegaDtoResponse toDto(Bodega b) {
+        UsuarioDtoResponse encargadoDto = b.getUsuarioEncargado() != null ?
+                usuarioMapper.entityToDto(b.getUsuarioEncargado()) : null;
+        return bodegaMapper.entityToDto(b, encargadoDto);
+    }
 
     @Override
     public BodegaDtoResponse guardar(BodegaDtoRequest dto) {
         if (bodegaRepository.existsByNombre(dto.nombre()))
             throw new BussinesRuleException("Ya existe una bodega con ese nombre");
         Usuario encargado = null;
-        UsuarioDtoResponse encargadoDto = null;
         if (dto.usuarioEncargadoId() != null) {
             encargado = usuarioRepository.findById(dto.usuarioEncargadoId())
                     .orElseThrow(() -> new DatabaseRuleException("Usuario encargado no encontrado"));
-            encargadoDto = usuarioMapper.entityToDto(encargado);
         }
         Bodega bodega = bodegaMapper.dtoToEntity(dto, encargado);
-        return bodegaMapper.entityToDto(bodegaRepository.save(bodega), encargadoDto);
+        bodegaRepository.save(bodega);
+        auditoriaService.registrar(TipoOperacion.insert, "bodega", bodega.getId(), null, null, jsonUtil.toJson(bodega));
+        return toDto(bodega);
     }
 
     @Override
     public BodegaDtoResponse actualizar(BodegaDtoRequest dto, Long id) {
         Bodega bodega = bodegaRepository.findById(id)
                 .orElseThrow(() -> new DatabaseRuleException("Bodega no encontrada"));
+        String antes = jsonUtil.toJson(bodega);
         Usuario encargado = null;
-        UsuarioDtoResponse encargadoDto = null;
         if (dto.usuarioEncargadoId() != null) {
             encargado = usuarioRepository.findById(dto.usuarioEncargadoId())
                     .orElseThrow(() -> new DatabaseRuleException("Usuario encargado no encontrado"));
-            encargadoDto = usuarioMapper.entityToDto(encargado);
         }
         bodegaMapper.updateEntityFromDto(bodega, dto, encargado);
-        return bodegaMapper.entityToDto(bodegaRepository.save(bodega), encargadoDto);
+        bodegaRepository.save(bodega);
+        auditoriaService.registrar(TipoOperacion.update, "bodega", bodega.getId(), null, antes, jsonUtil.toJson(bodega));
+        return toDto(bodega);
     }
 
     @Override
     public void eliminar(Long id) {
-        // Soft delete — se desactiva para no romper el historial de movimientos
         Bodega bodega = bodegaRepository.findById(id)
                 .orElseThrow(() -> new DatabaseRuleException("Bodega no encontrada"));
+        String antes = jsonUtil.toJson(bodega);
         bodega.setActivado(false);
         bodegaRepository.save(bodega);
+        auditoriaService.registrar(TipoOperacion.update, "bodega", bodega.getId(), null, antes, jsonUtil.toJson(bodega));
+    }
+
+    @Override
+    public void activar(Long id) {
+        Bodega bodega = bodegaRepository.findById(id)
+                .orElseThrow(() -> new DatabaseRuleException("Bodega no encontrada"));
+        String antes = jsonUtil.toJson(bodega);
+        bodega.setActivado(true);
+        bodegaRepository.save(bodega);
+        auditoriaService.registrar(TipoOperacion.update, "bodega", bodega.getId(), null, antes, jsonUtil.toJson(bodega));
     }
 
     @Override
     public List<BodegaDtoResponse> listar() {
-        return bodegaRepository.findAll().stream().map(b -> {
-            UsuarioDtoResponse encargadoDto = b.getUsuarioEncargado() != null ?
-                    usuarioMapper.entityToDto(b.getUsuarioEncargado()) : null;
-            return bodegaMapper.entityToDto(b, encargadoDto);
-        }).toList();
+        return bodegaRepository.findAll().stream().map(this::toDto).toList();
     }
 
     @Override
     public BodegaDtoResponse buscarId(Long id) {
-        Bodega bodega = bodegaRepository.findById(id)
-                .orElseThrow(() -> new DatabaseRuleException("Bodega no encontrada"));
-        UsuarioDtoResponse encargadoDto = bodega.getUsuarioEncargado() != null ?
-                usuarioMapper.entityToDto(bodega.getUsuarioEncargado()) : null;
-        return bodegaMapper.entityToDto(bodega, encargadoDto);
+        return toDto(bodegaRepository.findById(id)
+                .orElseThrow(() -> new DatabaseRuleException("Bodega no encontrada")));
     }
 
     @Override
     public List<BodegaDtoResponse> listarActivas() {
-        return bodegaRepository.findByActivadoTrue().stream().map(b -> {
-            UsuarioDtoResponse encargadoDto = b.getUsuarioEncargado() != null ?
-                    usuarioMapper.entityToDto(b.getUsuarioEncargado()) : null;
-            return bodegaMapper.entityToDto(b, encargadoDto);
-        }).toList();
+        return bodegaRepository.findByActivadoTrue().stream().map(this::toDto).toList();
     }
 }

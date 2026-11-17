@@ -6,9 +6,12 @@ import com.example.LogiTrack.exception.BussinesRuleException;
 import com.example.LogiTrack.exception.DatabaseRuleException;
 import com.example.LogiTrack.mapper.CategoriaMapper;
 import com.example.LogiTrack.modelo.Categoria;
+import com.example.LogiTrack.modelo.TipoOperacion;
 import com.example.LogiTrack.repository.CategoriaRepository;
 import com.example.LogiTrack.repository.ProductoRepository;
+import com.example.LogiTrack.service.AuditoriaService;
 import com.example.LogiTrack.service.CategoriaService;
+import com.example.LogiTrack.util.JsonUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -21,30 +24,37 @@ public class CategoriaServiceImpl implements CategoriaService {
     private final CategoriaRepository categoriaRepository;
     private final CategoriaMapper categoriaMapper;
     private final ProductoRepository productoRepository;
+    private final AuditoriaService auditoriaService;
+    private final JsonUtil jsonUtil;
 
     @Override
     public CategoriaDtoResponse guardar(CategoriaDtoRequest dto) {
         if (categoriaRepository.existsByNombre(dto.nombre()))
             throw new BussinesRuleException("Ya existe una categoría con ese nombre");
         Categoria categoria = categoriaMapper.dtoToEntity(dto);
-        return categoriaMapper.entityToDto(categoriaRepository.save(categoria));
+        categoriaRepository.save(categoria);
+        auditoriaService.registrar(TipoOperacion.insert, "categoria", categoria.getId(), null, null, jsonUtil.toJson(categoria));
+        return categoriaMapper.entityToDto(categoria);
     }
 
     @Override
     public CategoriaDtoResponse actualizar(CategoriaDtoRequest dto, Long id) {
         Categoria categoria = categoriaRepository.findById(id)
                 .orElseThrow(() -> new DatabaseRuleException("Categoría no encontrada"));
+        String antes = jsonUtil.toJson(categoria);
         categoriaMapper.updateEntityFromDto(categoria, dto);
-        return categoriaMapper.entityToDto(categoriaRepository.save(categoria));
+        categoriaRepository.save(categoria);
+        auditoriaService.registrar(TipoOperacion.update, "categoria", categoria.getId(), null, antes, jsonUtil.toJson(categoria));
+        return categoriaMapper.entityToDto(categoria);
     }
 
     @Override
     public void eliminar(Long id) {
         Categoria categoria = categoriaRepository.findById(id)
                 .orElseThrow(() -> new DatabaseRuleException("Categoría no encontrada"));
-        // No se puede borrar si tiene productos asociados
         if (productoRepository.existsByCategoriaId(id))
             throw new BussinesRuleException("No se puede eliminar la categoría porque tiene productos asociados");
+        auditoriaService.registrar(TipoOperacion.delete, "categoria", categoria.getId(), null, jsonUtil.toJson(categoria), null);
         categoriaRepository.delete(categoria);
     }
 

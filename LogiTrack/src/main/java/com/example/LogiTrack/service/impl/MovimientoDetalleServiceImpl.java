@@ -9,7 +9,9 @@ import com.example.LogiTrack.exception.DatabaseRuleException;
 import com.example.LogiTrack.mapper.*;
 import com.example.LogiTrack.modelo.*;
 import com.example.LogiTrack.repository.*;
+import com.example.LogiTrack.service.AuditoriaService;
 import com.example.LogiTrack.service.MovimientoDetalleService;
+import com.example.LogiTrack.util.JsonUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +34,8 @@ public class MovimientoDetalleServiceImpl implements MovimientoDetalleService {
     private final InventarioRepository inventarioRepository;
     private final UsuarioMapper usuarioMapper;
     private final BodegaMapper bodegaMapper;
+    private final AuditoriaService auditoriaService;
+    private final JsonUtil jsonUtil;
 
     private ProductoDtoResponse toProductoDto(Producto p) {
         return productoMapper.entityToDto(p, categoriaMapper.entityToDto(p.getCategoria()));
@@ -56,14 +60,12 @@ public class MovimientoDetalleServiceImpl implements MovimientoDetalleService {
         Producto producto = productoRepository.findById(dto.productoId())
                 .orElseThrow(() -> new DatabaseRuleException("Producto no encontrado"));
 
-        // Actualizar el stock según el tipo de movimiento
         if (movimiento.getTipoMovimiento() == TipoMovimiento.entrada) {
             Inventario inv = inventarioRepository.findByBodegaIdAndProductoId(
                     movimiento.getBodegaDestino().getId(), producto.getId());
             if (inv == null) throw new DatabaseRuleException("No existe inventario para ese producto en la bodega destino");
             inv.setStock(inv.getStock() + dto.cantidad());
             inventarioRepository.save(inv);
-
         } else if (movimiento.getTipoMovimiento() == TipoMovimiento.salida) {
             Inventario inv = inventarioRepository.findByBodegaIdAndProductoId(
                     movimiento.getBodegaOrigen().getId(), producto.getId());
@@ -72,7 +74,6 @@ public class MovimientoDetalleServiceImpl implements MovimientoDetalleService {
                 throw new BussinesRuleException("Stock insuficiente para realizar la salida");
             inv.setStock(inv.getStock() - dto.cantidad());
             inventarioRepository.save(inv);
-
         } else if (movimiento.getTipoMovimiento() == TipoMovimiento.transferencia) {
             Inventario invOrigen = inventarioRepository.findByBodegaIdAndProductoId(
                     movimiento.getBodegaOrigen().getId(), producto.getId());
@@ -89,13 +90,16 @@ public class MovimientoDetalleServiceImpl implements MovimientoDetalleService {
         }
 
         MovimientoDetalle detalle = detalleMapper.dtoToEntity(dto, movimiento, producto);
-        return detalleMapper.entityToDto(detalleRepository.save(detalle), toMovimientoDto(movimiento), toProductoDto(producto));
+        detalleRepository.save(detalle);
+        auditoriaService.registrar(TipoOperacion.insert, "movimiento_detalle", detalle.getId(), null, null, jsonUtil.toJson(detalle));
+        return detalleMapper.entityToDto(detalle, toMovimientoDto(movimiento), toProductoDto(producto));
     }
 
     @Override
     public void eliminar(Long id) {
         MovimientoDetalle detalle = detalleRepository.findById(id)
                 .orElseThrow(() -> new DatabaseRuleException("Detalle de movimiento no encontrado"));
+        auditoriaService.registrar(TipoOperacion.delete, "movimiento_detalle", detalle.getId(), null, jsonUtil.toJson(detalle), null);
         detalleRepository.delete(detalle);
     }
 

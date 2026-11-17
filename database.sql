@@ -14,6 +14,7 @@ SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,N
 -- -----------------------------------------------------
 -- Schema logitrack_db
 -- -----------------------------------------------------
+DROP DATABASE `logitrack_db`
 CREATE SCHEMA IF NOT EXISTS `logitrack_db` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci ;
 USE `logitrack_db` ;
 
@@ -227,6 +228,7 @@ SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
 -- -----------------------------------------------------
 
 -- Roles del sistema (estáticos, no se crean desde la API)
+INSERT INTO `logitrack_db`.`rol` (`nombre`) VALUES ('SUPERADMIN');
 INSERT INTO `logitrack_db`.`rol` (`nombre`) VALUES ('ADMIN');
 INSERT INTO `logitrack_db`.`rol` (`nombre`) VALUES ('EMPLEADO');
 
@@ -235,17 +237,17 @@ INSERT INTO `logitrack_db`.`categoria` (`nombre`) VALUES ('Electrónica');
 INSERT INTO `logitrack_db`.`categoria` (`nombre`) VALUES ('Herramientas');
 INSERT INTO `logitrack_db`.`categoria` (`nombre`) VALUES ('Papelería');
 
--- Primer admin — creado directo en BD, es el único que no pasa por la API
+-- Primer SUPERADMIN — creado directo en BD
 INSERT INTO `logitrack_db`.`usuario` (`nombre`, `email`, `activo`) VALUES ('Julian', 'tristan@gmail.com', 1);
-
--- Credenciales del admin (usuario id=1, rol id=1 que es ADMIN)
 INSERT INTO `logitrack_db`.`credenciales` (`username`, `password`, `usuario_fk`, `rol_fk`) VALUES ('julian', '1234', 1, 1);
+
+-- ADMIN de ejemplo
+INSERT INTO `logitrack_db`.`usuario` (`nombre`, `email`, `activo`) VALUES ('Administrador', 'admin@logitrack.com', 1);
+INSERT INTO `logitrack_db`.`credenciales` (`username`, `password`, `usuario_fk`, `rol_fk`) VALUES ('admin', '1234', 2, 2);
 
 -- Empleado de ejemplo
 INSERT INTO `logitrack_db`.`usuario` (`nombre`, `email`, `activo`) VALUES ('Carlos López', 'carlos@gmail.com', 1);
-
--- Credenciales del empleado (usuario id=2, rol id=2 que es EMPLEADO)
-INSERT INTO `logitrack_db`.`credenciales` (`username`, `password`, `usuario_fk`, `rol_fk`) VALUES ('carlos', '1234', 2, 2);
+INSERT INTO `logitrack_db`.`credenciales` (`username`, `password`, `usuario_fk`, `rol_fk`) VALUES ('carlos', '1234', 3, 3);
 
 -- Productos de ejemplo
 INSERT INTO `logitrack_db`.`producto` (`nombre`, `categoria_fk`, `precio`, `activo`) VALUES ('Monitor 24"', 1, 850000.00, 1);

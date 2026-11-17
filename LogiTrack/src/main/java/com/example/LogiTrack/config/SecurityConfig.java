@@ -37,17 +37,19 @@ public class SecurityConfig {
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**"
                         ).permitAll()
-                        // Rutas solo para ADMIN
-                        .requestMatchers("/api/usuario/**").hasRole("ADMIN")
-                        .requestMatchers("/api/credenciales/**").hasRole("ADMIN")
-                        .requestMatchers("/api/bodega/**").hasRole("ADMIN")
-                        .requestMatchers("/api/categoria/**").hasRole("ADMIN")
-                        .requestMatchers("/api/auditoria/**").hasRole("ADMIN")
+                        // Rutas solo para SUPERADMIN
+                        .requestMatchers("/api/usuario/**").hasRole("SUPERADMIN")
+                        .requestMatchers("/api/credenciales/**").hasRole("SUPERADMIN")
+                        .requestMatchers("/auth/crearEmpleado").hasAnyRole("SUPERADMIN", "ADMIN")
+                        // Rutas para ADMIN
+                        .requestMatchers("/api/bodega/**").hasAnyRole("SUPERADMIN", "ADMIN")
+                        .requestMatchers("/api/categoria/**").hasAnyRole("SUPERADMIN", "ADMIN")
+                        .requestMatchers("/api/auditoria/**").hasAnyRole("SUPERADMIN", "ADMIN")
                         // Rutas para ADMIN y EMPLEADO
-                        .requestMatchers("/api/producto/**").hasAnyRole("ADMIN", "EMPLEADO")
-                        .requestMatchers("/api/inventario/**").hasAnyRole("ADMIN", "EMPLEADO")
-                        .requestMatchers("/api/movimiento/**").hasAnyRole("ADMIN", "EMPLEADO")
-                        .requestMatchers("/api/movimientodetalle/**").hasAnyRole("ADMIN", "EMPLEADO")
+                        .requestMatchers("/api/producto/**").hasAnyRole("SUPERADMIN", "ADMIN", "EMPLEADO")
+                        .requestMatchers("/api/inventario/**").hasAnyRole("SUPERADMIN", "ADMIN", "EMPLEADO")
+                        .requestMatchers("/api/movimiento/**").hasAnyRole("SUPERADMIN", "ADMIN", "EMPLEADO")
+                        .requestMatchers("/api/movimientodetalle/**").hasAnyRole("SUPERADMIN", "ADMIN", "EMPLEADO")
                         // Cualquier otra ruta requiere autenticación
                         .anyRequest().authenticated()
                 )
@@ -58,8 +60,8 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://127.0.0.1:5500", "http://localhost:5500"));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedOriginPatterns(List.of("*"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

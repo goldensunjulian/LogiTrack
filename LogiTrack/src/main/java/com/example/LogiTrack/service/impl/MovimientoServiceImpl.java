@@ -3,7 +3,6 @@ package com.example.LogiTrack.service.impl;
 import com.example.LogiTrack.dto.request.MovimientoDtoRequest;
 import com.example.LogiTrack.dto.response.BodegaDtoResponse;
 import com.example.LogiTrack.dto.response.MovimientoDtoResponse;
-import com.example.LogiTrack.dto.response.UsuarioDtoResponse;
 import com.example.LogiTrack.exception.BussinesRuleException;
 import com.example.LogiTrack.exception.DatabaseRuleException;
 import com.example.LogiTrack.mapper.BodegaMapper;
@@ -11,7 +10,9 @@ import com.example.LogiTrack.mapper.MovimientoMapper;
 import com.example.LogiTrack.mapper.UsuarioMapper;
 import com.example.LogiTrack.modelo.*;
 import com.example.LogiTrack.repository.*;
+import com.example.LogiTrack.service.AuditoriaService;
 import com.example.LogiTrack.service.MovimientoService;
+import com.example.LogiTrack.util.JsonUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -28,6 +29,8 @@ public class MovimientoServiceImpl implements MovimientoService {
     private final UsuarioMapper usuarioMapper;
     private final BodegaRepository bodegaRepository;
     private final BodegaMapper bodegaMapper;
+    private final AuditoriaService auditoriaService;
+    private final JsonUtil jsonUtil;
 
     private BodegaDtoResponse toBodegaDto(Bodega b) {
         return b != null ? bodegaMapper.entityToDto(b,
@@ -49,7 +52,6 @@ public class MovimientoServiceImpl implements MovimientoService {
         Bodega bodegaOrigen = null;
         Bodega bodegaDestino = null;
 
-        // Validar bodegas según el tipo de movimiento
         if (dto.tipoMovimiento() == TipoMovimiento.entrada) {
             if (dto.bodegaDestinoId() == null)
                 throw new BussinesRuleException("Una entrada requiere bodega destino");
@@ -71,19 +73,21 @@ public class MovimientoServiceImpl implements MovimientoService {
                     .orElseThrow(() -> new DatabaseRuleException("Bodega destino no encontrada"));
         }
 
-        // Validar que el usuario sea el encargado de la bodega origen o destino
         Bodega bodegaDelUsuario = bodegaRepository.findByUsuarioEncargadoId(usuario.getId());
         if (bodegaDelUsuario == null)
             throw new BussinesRuleException("El usuario no es encargado de ninguna bodega");
 
         Movimiento movimiento = movimientoMapper.dtoToEntity(dto, usuario, bodegaOrigen, bodegaDestino);
-        return toDto(movimientoRepository.save(movimiento));
+        movimientoRepository.save(movimiento);
+        auditoriaService.registrar(TipoOperacion.insert, "movimiento", movimiento.getId(), null, null, jsonUtil.toJson(movimiento));
+        return toDto(movimiento);
     }
 
     @Override
     public void eliminar(Long id) {
         Movimiento movimiento = movimientoRepository.findById(id)
                 .orElseThrow(() -> new DatabaseRuleException("Movimiento no encontrado"));
+        auditoriaService.registrar(TipoOperacion.delete, "movimiento", movimiento.getId(), null, jsonUtil.toJson(movimiento), null);
         movimientoRepository.delete(movimiento);
     }
 

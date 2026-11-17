@@ -90,4 +90,15 @@ public class ProductoController {
         productoService.eliminar(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
+
+    @Operation(summary = "Activar producto", description = "Reactiva un producto que estaba inactivo")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Producto activado correctamente"),
+            @ApiResponse(responseCode = "404", description = "Producto no encontrado")
+    })
+    @PatchMapping("/{id}/activar")
+    public ResponseEntity<Void> activar(@PathVariable Long id) {
+        productoService.activar(id);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
 }
