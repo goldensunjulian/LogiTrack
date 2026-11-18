@@ -46,8 +46,12 @@ public class AuthController {
             throw new BussinesRuleException("El usuario está inactivo");
         String rol = credenciales.getRol().getNombre();
         String token = jwtService.generateToken(credenciales.getUsername(), rol);
-        return ResponseEntity.ok(new LoginResponse(token, credenciales.getUsername(), rol));
-    }
+        return ResponseEntity.ok(new LoginResponse(
+                token,
+                credenciales.getUsername(),
+                rol,
+                credenciales.getUsuario().getId()
+        ));    }
 
     @Operation(summary = "Crear empleado", description = "El ADMIN crea un nuevo empleado con usuario y credenciales en un solo paso")
     @ApiResponses(value = {

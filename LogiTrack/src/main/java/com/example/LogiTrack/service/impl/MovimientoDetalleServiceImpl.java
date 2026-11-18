@@ -91,7 +91,6 @@ public class MovimientoDetalleServiceImpl implements MovimientoDetalleService {
 
         MovimientoDetalle detalle = detalleMapper.dtoToEntity(dto, movimiento, producto);
         detalleRepository.save(detalle);
-        auditoriaService.registrar(TipoOperacion.insert, "movimiento_detalle", detalle.getId(), null, null, jsonUtil.toJson(detalle));
         return detalleMapper.entityToDto(detalle, toMovimientoDto(movimiento), toProductoDto(producto));
     }
 
@@ -99,7 +98,6 @@ public class MovimientoDetalleServiceImpl implements MovimientoDetalleService {
     public void eliminar(Long id) {
         MovimientoDetalle detalle = detalleRepository.findById(id)
                 .orElseThrow(() -> new DatabaseRuleException("Detalle de movimiento no encontrado"));
-        auditoriaService.registrar(TipoOperacion.delete, "movimiento_detalle", detalle.getId(), null, jsonUtil.toJson(detalle), null);
         detalleRepository.delete(detalle);
     }
 

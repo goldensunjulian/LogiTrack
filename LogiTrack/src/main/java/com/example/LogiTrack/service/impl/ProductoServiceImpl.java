@@ -39,7 +39,6 @@ public class ProductoServiceImpl implements ProductoService {
                 .orElseThrow(() -> new DatabaseRuleException("Categoría no encontrada"));
         Producto producto = productoMapper.dtoToEntity(dto, categoria);
         productoRepository.save(producto);
-        auditoriaService.registrar(TipoOperacion.insert, "producto", producto.getId(), null, null, jsonUtil.toJson(producto));
         return productoMapper.entityToDto(producto, categoriaMapper.entityToDto(categoria));
     }
 
@@ -52,7 +51,6 @@ public class ProductoServiceImpl implements ProductoService {
                 .orElseThrow(() -> new DatabaseRuleException("Categoría no encontrada"));
         productoMapper.updateEntityFromDto(producto, dto, categoria);
         productoRepository.save(producto);
-        auditoriaService.registrar(TipoOperacion.update, "producto", producto.getId(), null, antes, jsonUtil.toJson(producto));
         return productoMapper.entityToDto(producto, categoriaMapper.entityToDto(categoria));
     }
 
@@ -63,7 +61,6 @@ public class ProductoServiceImpl implements ProductoService {
         String antes = jsonUtil.toJson(producto);
         producto.setActivo(false);
         productoRepository.save(producto);
-        auditoriaService.registrar(TipoOperacion.update, "producto", producto.getId(), null, antes, jsonUtil.toJson(producto));
     }
 
     @Override
@@ -73,7 +70,6 @@ public class ProductoServiceImpl implements ProductoService {
         String antes = jsonUtil.toJson(producto);
         producto.setActivo(true);
         productoRepository.save(producto);
-        auditoriaService.registrar(TipoOperacion.update, "producto", producto.getId(), null, antes, jsonUtil.toJson(producto));
     }
 
     @Override

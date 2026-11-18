@@ -1,4 +1,6 @@
 package com.example.LogiTrack.modelo;
+import com.example.LogiTrack.util.AuditoriaListener;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -10,6 +12,7 @@ import lombok.Setter;
 @Getter @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@EntityListeners(AuditoriaListener.class)
 public class Credenciales {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -17,6 +20,7 @@ public class Credenciales {
     @Column(nullable = false, length = 50)
     private String username;
     @Column(nullable = false, length = 225)
+    @JsonIgnore
     private String password;
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(nullable = false, name = "usuario_fk")

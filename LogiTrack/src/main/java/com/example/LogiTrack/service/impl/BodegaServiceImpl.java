@@ -48,7 +48,6 @@ public class BodegaServiceImpl implements BodegaService {
         }
         Bodega bodega = bodegaMapper.dtoToEntity(dto, encargado);
         bodegaRepository.save(bodega);
-        auditoriaService.registrar(TipoOperacion.insert, "bodega", bodega.getId(), null, null, jsonUtil.toJson(bodega));
         return toDto(bodega);
     }
 
@@ -64,7 +63,6 @@ public class BodegaServiceImpl implements BodegaService {
         }
         bodegaMapper.updateEntityFromDto(bodega, dto, encargado);
         bodegaRepository.save(bodega);
-        auditoriaService.registrar(TipoOperacion.update, "bodega", bodega.getId(), null, antes, jsonUtil.toJson(bodega));
         return toDto(bodega);
     }
 
@@ -75,7 +73,6 @@ public class BodegaServiceImpl implements BodegaService {
         String antes = jsonUtil.toJson(bodega);
         bodega.setActivado(false);
         bodegaRepository.save(bodega);
-        auditoriaService.registrar(TipoOperacion.update, "bodega", bodega.getId(), null, antes, jsonUtil.toJson(bodega));
     }
 
     @Override
@@ -85,7 +82,6 @@ public class BodegaServiceImpl implements BodegaService {
         String antes = jsonUtil.toJson(bodega);
         bodega.setActivado(true);
         bodegaRepository.save(bodega);
-        auditoriaService.registrar(TipoOperacion.update, "bodega", bodega.getId(), null, antes, jsonUtil.toJson(bodega));
     }
 
     @Override

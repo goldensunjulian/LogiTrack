@@ -75,6 +75,7 @@ public class GlobalExceptionHandler {
     // Cualquier error no controlado — 500
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneric(Exception ex) {
+        ex.printStackTrace();
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponse(
                 LocalDateTime.now(), HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 "Error interno del servidor", "INTERNAL_SERVER_ERROR"));

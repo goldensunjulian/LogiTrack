@@ -1,5 +1,6 @@
 package com.example.LogiTrack.modelo;
 
+import com.example.LogiTrack.util.AuditoriaListener;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -10,7 +11,7 @@ import lombok.Setter;
 @Entity
 @Table(name="usuario")
 @Setter @Getter @NoArgsConstructor @AllArgsConstructor
-
+@EntityListeners(AuditoriaListener.class)
 public class Usuario {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

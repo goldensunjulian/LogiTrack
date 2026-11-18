@@ -47,7 +47,6 @@ public class CredencialesServiceImpl implements CredencialesService {
                 .orElseThrow(() -> new DatabaseRuleException("Rol no encontrado"));
         Credenciales credenciales = credencialesMapper.dtoToEntity(dto, usuario, rol);
         credencialesRepository.save(credenciales);
-        auditoriaService.registrar(TipoOperacion.insert, "credenciales", credenciales.getId(), null, null, jsonUtil.toJson(credenciales));
         return credencialesMapper.entityToDto(credenciales, usuarioMapper.entityToDto(usuario), rolMapper.entityToDto(rol));
     }
 
@@ -60,7 +59,6 @@ public class CredencialesServiceImpl implements CredencialesService {
                 .orElseThrow(() -> new DatabaseRuleException("Rol no encontrado"));
         credencialesMapper.updateEntityFromDto(credenciales, dto, rol);
         credencialesRepository.save(credenciales);
-        auditoriaService.registrar(TipoOperacion.update, "credenciales", credenciales.getId(), null, antes, jsonUtil.toJson(credenciales));
         return credencialesMapper.entityToDto(credenciales, usuarioMapper.entityToDto(credenciales.getUsuario()), rolMapper.entityToDto(rol));
     }
 
@@ -68,7 +66,6 @@ public class CredencialesServiceImpl implements CredencialesService {
     public void eliminar(Long id) {
         Credenciales credenciales = credencialesRepository.findById(id)
                 .orElseThrow(() -> new DatabaseRuleException("Credenciales no encontradas"));
-        auditoriaService.registrar(TipoOperacion.delete, "credenciales", credenciales.getId(), null, jsonUtil.toJson(credenciales), null);
         credencialesRepository.delete(credenciales);
     }
 
@@ -77,7 +74,6 @@ public class CredencialesServiceImpl implements CredencialesService {
         Credenciales credenciales = credencialesRepository.findByUsuarioId(usuarioId);
         if (credenciales == null)
             throw new DatabaseRuleException("No se encontraron credenciales para ese usuario");
-        auditoriaService.registrar(TipoOperacion.delete, "credenciales", credenciales.getId(), null, jsonUtil.toJson(credenciales), null);
         credencialesRepository.delete(credenciales);
     }
 

@@ -33,7 +33,6 @@ public class CategoriaServiceImpl implements CategoriaService {
             throw new BussinesRuleException("Ya existe una categoría con ese nombre");
         Categoria categoria = categoriaMapper.dtoToEntity(dto);
         categoriaRepository.save(categoria);
-        auditoriaService.registrar(TipoOperacion.insert, "categoria", categoria.getId(), null, null, jsonUtil.toJson(categoria));
         return categoriaMapper.entityToDto(categoria);
     }
 
@@ -44,7 +43,6 @@ public class CategoriaServiceImpl implements CategoriaService {
         String antes = jsonUtil.toJson(categoria);
         categoriaMapper.updateEntityFromDto(categoria, dto);
         categoriaRepository.save(categoria);
-        auditoriaService.registrar(TipoOperacion.update, "categoria", categoria.getId(), null, antes, jsonUtil.toJson(categoria));
         return categoriaMapper.entityToDto(categoria);
     }
 
@@ -54,7 +52,6 @@ public class CategoriaServiceImpl implements CategoriaService {
                 .orElseThrow(() -> new DatabaseRuleException("Categoría no encontrada"));
         if (productoRepository.existsByCategoriaId(id))
             throw new BussinesRuleException("No se puede eliminar la categoría porque tiene productos asociados");
-        auditoriaService.registrar(TipoOperacion.delete, "categoria", categoria.getId(), null, jsonUtil.toJson(categoria), null);
         categoriaRepository.delete(categoria);
     }
 

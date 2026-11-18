@@ -5,15 +5,12 @@ import com.example.LogiTrack.dto.response.UsuarioDtoResponse;
 import com.example.LogiTrack.exception.BussinesRuleException;
 import com.example.LogiTrack.exception.DatabaseRuleException;
 import com.example.LogiTrack.mapper.UsuarioMapper;
-import com.example.LogiTrack.modelo.TipoOperacion;
 import com.example.LogiTrack.modelo.Usuario;
-import com.example.LogiTrack.repository.UsuarioRepository;
 import com.example.LogiTrack.repository.CredencialesRepository;
-import com.example.LogiTrack.service.AuditoriaService;
+import com.example.LogiTrack.repository.UsuarioRepository;
 import com.example.LogiTrack.service.UsuarioService;
-import org.springframework.security.core.context.SecurityContextHolder;
-import com.example.LogiTrack.util.JsonUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -24,8 +21,6 @@ public class UsuarioServiceImpl implements UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
     private final UsuarioMapper usuarioMapper;
-    private final AuditoriaService auditoriaService;
-    private final JsonUtil jsonUtil;
     private final CredencialesRepository credencialesRepository;
 
     // Obtiene el id del usuario logueado desde el token
@@ -41,7 +36,6 @@ public class UsuarioServiceImpl implements UsuarioService {
             throw new BussinesRuleException("El email ya está registrado");
         Usuario usuario = usuarioMapper.dtoToEntity(dto);
         usuarioRepository.save(usuario);
-        auditoriaService.registrar(TipoOperacion.insert, "usuario", usuario.getId(), null, null, jsonUtil.toJson(usuario));
         return usuarioMapper.entityToDto(usuario);
     }
 
@@ -49,10 +43,8 @@ public class UsuarioServiceImpl implements UsuarioService {
     public UsuarioDtoResponse actualizar(UsuarioDtoRequest dto, Long id) {
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new DatabaseRuleException("Usuario no encontrado"));
-        String antes = jsonUtil.toJson(usuario);
         usuarioMapper.updateEntityFromDto(usuario, dto);
         usuarioRepository.save(usuario);
-        auditoriaService.registrar(TipoOperacion.update, "usuario", usuario.getId(), null, antes, jsonUtil.toJson(usuario));
         return usuarioMapper.entityToDto(usuario);
     }
 
@@ -62,20 +54,16 @@ public class UsuarioServiceImpl implements UsuarioService {
             throw new BussinesRuleException("No puedes desactivarte a ti mismo");
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new DatabaseRuleException("Usuario no encontrado"));
-        String antes = jsonUtil.toJson(usuario);
         usuario.setActivo(false);
         usuarioRepository.save(usuario);
-        auditoriaService.registrar(TipoOperacion.update, "usuario", usuario.getId(), null, antes, jsonUtil.toJson(usuario));
     }
 
     @Override
     public void activar(Long id) {
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new DatabaseRuleException("Usuario no encontrado"));
-        String antes = jsonUtil.toJson(usuario);
         usuario.setActivo(true);
         usuarioRepository.save(usuario);
-        auditoriaService.registrar(TipoOperacion.update, "usuario", usuario.getId(), null, antes, jsonUtil.toJson(usuario));
     }
 
     @Override

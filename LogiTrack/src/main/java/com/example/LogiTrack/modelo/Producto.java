@@ -1,4 +1,5 @@
 package com.example.LogiTrack.modelo;
+import com.example.LogiTrack.util.AuditoriaListener;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -11,6 +12,7 @@ import java.math.BigDecimal;
 @Getter @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@EntityListeners(AuditoriaListener.class)
 public class Producto {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

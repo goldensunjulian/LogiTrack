@@ -59,7 +59,6 @@ public class InventarioServiceImpl implements InventarioService {
                 .orElseThrow(() -> new DatabaseRuleException("Producto no encontrado"));
         Inventario inventario = inventarioMapper.dtoToEntity(dto, bodega, producto);
         inventarioRepository.save(inventario);
-        auditoriaService.registrar(TipoOperacion.insert, "inventario", inventario.getId(), null, null, jsonUtil.toJson(inventario));
         return inventarioMapper.entityToDto(inventario, toBodegaDto(bodega), toProductoDto(producto));
     }
 
@@ -70,7 +69,6 @@ public class InventarioServiceImpl implements InventarioService {
         String antes = jsonUtil.toJson(inventario);
         inventarioMapper.updateEntityFromDto(inventario, dto);
         inventarioRepository.save(inventario);
-        auditoriaService.registrar(TipoOperacion.update, "inventario", inventario.getId(), null, antes, jsonUtil.toJson(inventario));
         return inventarioMapper.entityToDto(inventario, toBodegaDto(inventario.getBodega()), toProductoDto(inventario.getProducto()));
     }
 
@@ -78,7 +76,6 @@ public class InventarioServiceImpl implements InventarioService {
     public void eliminar(Long id) {
         Inventario inventario = inventarioRepository.findById(id)
                 .orElseThrow(() -> new DatabaseRuleException("Inventario no encontrado"));
-        auditoriaService.registrar(TipoOperacion.delete, "inventario", inventario.getId(), null, jsonUtil.toJson(inventario), null);
         inventarioRepository.delete(inventario);
     }
 

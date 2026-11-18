@@ -79,7 +79,6 @@ public class MovimientoServiceImpl implements MovimientoService {
 
         Movimiento movimiento = movimientoMapper.dtoToEntity(dto, usuario, bodegaOrigen, bodegaDestino);
         movimientoRepository.save(movimiento);
-        auditoriaService.registrar(TipoOperacion.insert, "movimiento", movimiento.getId(), null, null, jsonUtil.toJson(movimiento));
         return toDto(movimiento);
     }
 
@@ -87,7 +86,6 @@ public class MovimientoServiceImpl implements MovimientoService {
     public void eliminar(Long id) {
         Movimiento movimiento = movimientoRepository.findById(id)
                 .orElseThrow(() -> new DatabaseRuleException("Movimiento no encontrado"));
-        auditoriaService.registrar(TipoOperacion.delete, "movimiento", movimiento.getId(), null, jsonUtil.toJson(movimiento), null);
         movimientoRepository.delete(movimiento);
     }
 

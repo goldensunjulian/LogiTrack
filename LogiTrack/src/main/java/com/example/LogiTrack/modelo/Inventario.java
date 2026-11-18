@@ -1,4 +1,5 @@
 package com.example.LogiTrack.modelo;
+import com.example.LogiTrack.util.AuditoriaListener;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -10,6 +11,7 @@ import lombok.Setter;
 @Getter @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@EntityListeners(AuditoriaListener.class)
 public class Inventario {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
