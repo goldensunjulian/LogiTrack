@@ -2,8 +2,6 @@ package com.example.LogiTrack.service.impl;
 
 import com.example.LogiTrack.dto.request.CredencialesDtoRequest;
 import com.example.LogiTrack.dto.response.CredencialesDtoResponse;
-import com.example.LogiTrack.dto.response.RolDtoResponse;
-import com.example.LogiTrack.dto.response.UsuarioDtoResponse;
 import com.example.LogiTrack.exception.BussinesRuleException;
 import com.example.LogiTrack.exception.DatabaseRuleException;
 import com.example.LogiTrack.mapper.CredencialesMapper;
@@ -11,14 +9,11 @@ import com.example.LogiTrack.mapper.RolMapper;
 import com.example.LogiTrack.mapper.UsuarioMapper;
 import com.example.LogiTrack.modelo.Credenciales;
 import com.example.LogiTrack.modelo.Rol;
-import com.example.LogiTrack.modelo.TipoOperacion;
 import com.example.LogiTrack.modelo.Usuario;
 import com.example.LogiTrack.repository.CredencialesRepository;
 import com.example.LogiTrack.repository.RolRepository;
 import com.example.LogiTrack.repository.UsuarioRepository;
-import com.example.LogiTrack.service.AuditoriaService;
 import com.example.LogiTrack.service.CredencialesService;
-import com.example.LogiTrack.util.JsonUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -34,8 +29,6 @@ public class CredencialesServiceImpl implements CredencialesService {
     private final UsuarioMapper usuarioMapper;
     private final RolRepository rolRepository;
     private final RolMapper rolMapper;
-    private final AuditoriaService auditoriaService;
-    private final JsonUtil jsonUtil;
 
     @Override
     public CredencialesDtoResponse guardar(CredencialesDtoRequest dto) {
@@ -54,7 +47,6 @@ public class CredencialesServiceImpl implements CredencialesService {
     public CredencialesDtoResponse actualizar(CredencialesDtoRequest dto, Long id) {
         Credenciales credenciales = credencialesRepository.findById(id)
                 .orElseThrow(() -> new DatabaseRuleException("Credenciales no encontradas"));
-        String antes = jsonUtil.toJson(credenciales);
         Rol rol = rolRepository.findById(dto.rolId())
                 .orElseThrow(() -> new DatabaseRuleException("Rol no encontrado"));
         credencialesMapper.updateEntityFromDto(credenciales, dto, rol);

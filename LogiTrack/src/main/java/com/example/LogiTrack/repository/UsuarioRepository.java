@@ -11,10 +11,10 @@ import java.util.List;
 @Repository
 
 public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
-    // Para mirar usuarios activos
+    //para mirar usuarios activos
     List<Usuario> findByActivoTrue();
 
-    // Para que no tomen el mismo email
+    //para que no tomen el mismo email
     boolean existsByEmail(String email);
 
 

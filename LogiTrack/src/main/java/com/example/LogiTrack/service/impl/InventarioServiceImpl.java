@@ -13,13 +13,10 @@ import com.example.LogiTrack.mapper.UsuarioMapper;
 import com.example.LogiTrack.modelo.Bodega;
 import com.example.LogiTrack.modelo.Inventario;
 import com.example.LogiTrack.modelo.Producto;
-import com.example.LogiTrack.modelo.TipoOperacion;
 import com.example.LogiTrack.repository.BodegaRepository;
 import com.example.LogiTrack.repository.InventarioRepository;
 import com.example.LogiTrack.repository.ProductoRepository;
-import com.example.LogiTrack.service.AuditoriaService;
 import com.example.LogiTrack.service.InventarioService;
-import com.example.LogiTrack.util.JsonUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -39,8 +36,6 @@ public class InventarioServiceImpl implements InventarioService {
     private final ProductoMapper productoMapper;
     private final CategoriaMapper categoriaMapper;
     private final UsuarioMapper usuarioMapper;
-    private final AuditoriaService auditoriaService;
-    private final JsonUtil jsonUtil;
 
     private BodegaDtoResponse toBodegaDto(Bodega b) {
         return bodegaMapper.entityToDto(b,
@@ -66,7 +61,6 @@ public class InventarioServiceImpl implements InventarioService {
     public InventarioDtoResponse actualizar(InventarioDtoRequest dto, Long id) {
         Inventario inventario = inventarioRepository.findById(id)
                 .orElseThrow(() -> new DatabaseRuleException("Inventario no encontrado"));
-        String antes = jsonUtil.toJson(inventario);
         inventarioMapper.updateEntityFromDto(inventario, dto);
         inventarioRepository.save(inventario);
         return inventarioMapper.entityToDto(inventario, toBodegaDto(inventario.getBodega()), toProductoDto(inventario.getProducto()));
@@ -108,7 +102,7 @@ public class InventarioServiceImpl implements InventarioService {
     }
 
     @Override
-    public List<Map<String, Object>> stockTotalPorBodega() {
+    public List< Map<String, Object> > stockTotalPorBodega() {
         return inventarioRepository.stockTotalPorBodega().stream().map(row -> {
             Map<String, Object> mapa = new HashMap<>();
             mapa.put("bodega", row[0]);

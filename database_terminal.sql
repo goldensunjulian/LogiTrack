@@ -1,3 +1,4 @@
+DROP DATABASE logitrack_db;
 CREATE DATABASE IF NOT EXISTS logitrack_db DEFAULT CHARACTER SET utf8mb4;
 USE logitrack_db;
 

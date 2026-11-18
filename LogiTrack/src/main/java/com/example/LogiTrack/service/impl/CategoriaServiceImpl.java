@@ -6,12 +6,9 @@ import com.example.LogiTrack.exception.BussinesRuleException;
 import com.example.LogiTrack.exception.DatabaseRuleException;
 import com.example.LogiTrack.mapper.CategoriaMapper;
 import com.example.LogiTrack.modelo.Categoria;
-import com.example.LogiTrack.modelo.TipoOperacion;
 import com.example.LogiTrack.repository.CategoriaRepository;
 import com.example.LogiTrack.repository.ProductoRepository;
-import com.example.LogiTrack.service.AuditoriaService;
 import com.example.LogiTrack.service.CategoriaService;
-import com.example.LogiTrack.util.JsonUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -24,8 +21,6 @@ public class CategoriaServiceImpl implements CategoriaService {
     private final CategoriaRepository categoriaRepository;
     private final CategoriaMapper categoriaMapper;
     private final ProductoRepository productoRepository;
-    private final AuditoriaService auditoriaService;
-    private final JsonUtil jsonUtil;
 
     @Override
     public CategoriaDtoResponse guardar(CategoriaDtoRequest dto) {
@@ -40,7 +35,6 @@ public class CategoriaServiceImpl implements CategoriaService {
     public CategoriaDtoResponse actualizar(CategoriaDtoRequest dto, Long id) {
         Categoria categoria = categoriaRepository.findById(id)
                 .orElseThrow(() -> new DatabaseRuleException("Categoría no encontrada"));
-        String antes = jsonUtil.toJson(categoria);
         categoriaMapper.updateEntityFromDto(categoria, dto);
         categoriaRepository.save(categoria);
         return categoriaMapper.entityToDto(categoria);

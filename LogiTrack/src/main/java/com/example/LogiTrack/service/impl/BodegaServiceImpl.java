@@ -8,13 +8,10 @@ import com.example.LogiTrack.exception.DatabaseRuleException;
 import com.example.LogiTrack.mapper.BodegaMapper;
 import com.example.LogiTrack.mapper.UsuarioMapper;
 import com.example.LogiTrack.modelo.Bodega;
-import com.example.LogiTrack.modelo.TipoOperacion;
 import com.example.LogiTrack.modelo.Usuario;
 import com.example.LogiTrack.repository.BodegaRepository;
 import com.example.LogiTrack.repository.UsuarioRepository;
-import com.example.LogiTrack.service.AuditoriaService;
 import com.example.LogiTrack.service.BodegaService;
-import com.example.LogiTrack.util.JsonUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -28,8 +25,6 @@ public class BodegaServiceImpl implements BodegaService {
     private final BodegaMapper bodegaMapper;
     private final UsuarioRepository usuarioRepository;
     private final UsuarioMapper usuarioMapper;
-    private final AuditoriaService auditoriaService;
-    private final JsonUtil jsonUtil;
 
     private BodegaDtoResponse toDto(Bodega b) {
         UsuarioDtoResponse encargadoDto = b.getUsuarioEncargado() != null ?
@@ -55,7 +50,6 @@ public class BodegaServiceImpl implements BodegaService {
     public BodegaDtoResponse actualizar(BodegaDtoRequest dto, Long id) {
         Bodega bodega = bodegaRepository.findById(id)
                 .orElseThrow(() -> new DatabaseRuleException("Bodega no encontrada"));
-        String antes = jsonUtil.toJson(bodega);
         Usuario encargado = null;
         if (dto.usuarioEncargadoId() != null) {
             encargado = usuarioRepository.findById(dto.usuarioEncargadoId())
@@ -70,7 +64,6 @@ public class BodegaServiceImpl implements BodegaService {
     public void eliminar(Long id) {
         Bodega bodega = bodegaRepository.findById(id)
                 .orElseThrow(() -> new DatabaseRuleException("Bodega no encontrada"));
-        String antes = jsonUtil.toJson(bodega);
         bodega.setActivado(false);
         bodegaRepository.save(bodega);
     }
@@ -79,7 +72,6 @@ public class BodegaServiceImpl implements BodegaService {
     public void activar(Long id) {
         Bodega bodega = bodegaRepository.findById(id)
                 .orElseThrow(() -> new DatabaseRuleException("Bodega no encontrada"));
-        String antes = jsonUtil.toJson(bodega);
         bodega.setActivado(true);
         bodegaRepository.save(bodega);
     }

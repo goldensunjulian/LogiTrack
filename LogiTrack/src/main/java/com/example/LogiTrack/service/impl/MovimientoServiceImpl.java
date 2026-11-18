@@ -10,9 +10,7 @@ import com.example.LogiTrack.mapper.MovimientoMapper;
 import com.example.LogiTrack.mapper.UsuarioMapper;
 import com.example.LogiTrack.modelo.*;
 import com.example.LogiTrack.repository.*;
-import com.example.LogiTrack.service.AuditoriaService;
 import com.example.LogiTrack.service.MovimientoService;
-import com.example.LogiTrack.util.JsonUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -29,8 +27,6 @@ public class MovimientoServiceImpl implements MovimientoService {
     private final UsuarioMapper usuarioMapper;
     private final BodegaRepository bodegaRepository;
     private final BodegaMapper bodegaMapper;
-    private final AuditoriaService auditoriaService;
-    private final JsonUtil jsonUtil;
 
     private BodegaDtoResponse toBodegaDto(Bodega b) {
         return b != null ? bodegaMapper.entityToDto(b,

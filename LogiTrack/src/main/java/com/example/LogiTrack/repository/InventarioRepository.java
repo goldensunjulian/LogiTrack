@@ -12,9 +12,6 @@ public interface InventarioRepository extends JpaRepository<Inventario, Long> {
     // mirar todo el inventario de una bodega
     List<Inventario> findByBodegaId(Long bodegaId);
 
-    // ver en qué bodegas está un producto específico
-    List<Inventario> findByProductoId(Long productoId);
-
     // buscar el registro exacto de un producto en una bodega 
     // sirve para actualizar stock en movimientos
     Inventario findByBodegaIdAndProductoId(Long bodegaId, Long productoId);

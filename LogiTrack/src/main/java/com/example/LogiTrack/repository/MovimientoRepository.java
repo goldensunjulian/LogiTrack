@@ -16,12 +16,6 @@ public interface MovimientoRepository extends JpaRepository<Movimiento, Long> {
     // ver movimientos por tipo (entrada, salida, transferencia)
     List<Movimiento> findByTipoMovimiento(TipoMovimiento tipoMovimiento);
 
-    // ver movimientos de una bodega origen específica
-    List<Movimiento> findByBodegaOrigenId(Long bodegaId);
-
-    // ver movimientos de una bodega destino específica
-    List<Movimiento> findByBodegaDestinoId(Long bodegaId);
-
     // Movimientos por rango de fechas
     List<Movimiento> findByFechaBetween(LocalDateTime inicio, LocalDateTime fin);
 }
