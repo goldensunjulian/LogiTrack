@@ -1,9 +1,7 @@
 package com.example.LogiTrack.service.impl;
 
 import com.example.LogiTrack.dto.request.InventarioDtoRequest;
-import com.example.LogiTrack.dto.response.BodegaDtoResponse;
 import com.example.LogiTrack.dto.response.InventarioDtoResponse;
-import com.example.LogiTrack.dto.response.ProductoDtoResponse;
 import com.example.LogiTrack.exception.DatabaseRuleException;
 import com.example.LogiTrack.mapper.BodegaMapper;
 import com.example.LogiTrack.mapper.CategoriaMapper;
@@ -37,15 +35,6 @@ public class InventarioServiceImpl implements InventarioService {
     private final CategoriaMapper categoriaMapper;
     private final UsuarioMapper usuarioMapper;
 
-    private BodegaDtoResponse toBodegaDto(Bodega b) {
-        return bodegaMapper.entityToDto(b,
-                b.getUsuarioEncargado() != null ? usuarioMapper.entityToDto(b.getUsuarioEncargado()) : null);
-    }
-
-    private ProductoDtoResponse toProductoDto(Producto p) {
-        return productoMapper.entityToDto(p, categoriaMapper.entityToDto(p.getCategoria()));
-    }
-
     @Override
     public InventarioDtoResponse guardar(InventarioDtoRequest dto) {
         Bodega bodega = bodegaRepository.findById(dto.bodegaId())
@@ -54,7 +43,11 @@ public class InventarioServiceImpl implements InventarioService {
                 .orElseThrow(() -> new DatabaseRuleException("Producto no encontrado"));
         Inventario inventario = inventarioMapper.dtoToEntity(dto, bodega, producto);
         inventarioRepository.save(inventario);
-        return inventarioMapper.entityToDto(inventario, toBodegaDto(bodega), toProductoDto(producto));
+        return inventarioMapper.entityToDto(
+                inventario,
+                bodegaMapper.entityToDto(bodega, usuarioMapper.entityToDto(bodega.getUsuarioEncargado())),
+                productoMapper.entityToDto(producto, categoriaMapper.entityToDto(producto.getCategoria()))
+        );
     }
 
     @Override
@@ -63,7 +56,11 @@ public class InventarioServiceImpl implements InventarioService {
                 .orElseThrow(() -> new DatabaseRuleException("Inventario no encontrado"));
         inventarioMapper.updateEntityFromDto(inventario, dto);
         inventarioRepository.save(inventario);
-        return inventarioMapper.entityToDto(inventario, toBodegaDto(inventario.getBodega()), toProductoDto(inventario.getProducto()));
+        return inventarioMapper.entityToDto(
+                inventario,
+                bodegaMapper.entityToDto(inventario.getBodega(), usuarioMapper.entityToDto(inventario.getBodega().getUsuarioEncargado())),
+                productoMapper.entityToDto(inventario.getProducto(), categoriaMapper.entityToDto(inventario.getProducto().getCategoria()))
+        );
     }
 
     @Override
@@ -76,7 +73,11 @@ public class InventarioServiceImpl implements InventarioService {
     @Override
     public List<InventarioDtoResponse> listar() {
         return inventarioRepository.findAll().stream().map(i ->
-                inventarioMapper.entityToDto(i, toBodegaDto(i.getBodega()), toProductoDto(i.getProducto()))
+                inventarioMapper.entityToDto(
+                        i,
+                        bodegaMapper.entityToDto(i.getBodega(), usuarioMapper.entityToDto(i.getBodega().getUsuarioEncargado())),
+                        productoMapper.entityToDto(i.getProducto(), categoriaMapper.entityToDto(i.getProducto().getCategoria()))
+                )
         ).toList();
     }
 
@@ -84,25 +85,37 @@ public class InventarioServiceImpl implements InventarioService {
     public InventarioDtoResponse buscarId(Long id) {
         Inventario inventario = inventarioRepository.findById(id)
                 .orElseThrow(() -> new DatabaseRuleException("Inventario no encontrado"));
-        return inventarioMapper.entityToDto(inventario, toBodegaDto(inventario.getBodega()), toProductoDto(inventario.getProducto()));
+        return inventarioMapper.entityToDto(
+                inventario,
+                bodegaMapper.entityToDto(inventario.getBodega(), usuarioMapper.entityToDto(inventario.getBodega().getUsuarioEncargado())),
+                productoMapper.entityToDto(inventario.getProducto(), categoriaMapper.entityToDto(inventario.getProducto().getCategoria()))
+        );
     }
 
     @Override
     public List<InventarioDtoResponse> buscarPorBodega(Long bodegaId) {
         return inventarioRepository.findByBodegaId(bodegaId).stream().map(i ->
-                inventarioMapper.entityToDto(i, toBodegaDto(i.getBodega()), toProductoDto(i.getProducto()))
+                inventarioMapper.entityToDto(
+                        i,
+                        bodegaMapper.entityToDto(i.getBodega(), usuarioMapper.entityToDto(i.getBodega().getUsuarioEncargado())),
+                        productoMapper.entityToDto(i.getProducto(), categoriaMapper.entityToDto(i.getProducto().getCategoria()))
+                )
         ).toList();
     }
 
     @Override
     public List<InventarioDtoResponse> stockBajo() {
         return inventarioRepository.findStockBajo().stream().map(i ->
-                inventarioMapper.entityToDto(i, toBodegaDto(i.getBodega()), toProductoDto(i.getProducto()))
+                inventarioMapper.entityToDto(
+                        i,
+                        bodegaMapper.entityToDto(i.getBodega(), usuarioMapper.entityToDto(i.getBodega().getUsuarioEncargado())),
+                        productoMapper.entityToDto(i.getProducto(), categoriaMapper.entityToDto(i.getProducto().getCategoria()))
+                )
         ).toList();
     }
 
     @Override
-    public List< Map<String, Object> > stockTotalPorBodega() {
+    public List<Map<String, Object>> stockTotalPorBodega() {
         return inventarioRepository.stockTotalPorBodega().stream().map(row -> {
             Map<String, Object> mapa = new HashMap<>();
             mapa.put("bodega", row[0]);
@@ -110,4 +123,6 @@ public class InventarioServiceImpl implements InventarioService {
             return mapa;
         }).toList();
     }
+
+
 }

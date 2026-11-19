@@ -38,11 +38,10 @@ public class JwtService {
     // Validar token
     public String validateToken(String token) {
         /*
-         * Este método:
+         * Este metodo:
          * - Verifica que la firma sea correcta
          * - Verifica que no esté expirado
-         * - Si todo está bien, devuelve el username
-         *
+         * - en caso de que todo este bien, devuelve el username
          * Si algo falla, devuelve null.
          */
         try {

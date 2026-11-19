@@ -1,7 +1,6 @@
 package com.example.LogiTrack.service.impl;
 
 import com.example.LogiTrack.dto.request.MovimientoDtoRequest;
-import com.example.LogiTrack.dto.response.BodegaDtoResponse;
 import com.example.LogiTrack.dto.response.MovimientoDtoResponse;
 import com.example.LogiTrack.exception.BussinesRuleException;
 import com.example.LogiTrack.exception.DatabaseRuleException;
@@ -27,18 +26,6 @@ public class MovimientoServiceImpl implements MovimientoService {
     private final UsuarioMapper usuarioMapper;
     private final BodegaRepository bodegaRepository;
     private final BodegaMapper bodegaMapper;
-
-    private BodegaDtoResponse toBodegaDto(Bodega b) {
-        return b != null ? bodegaMapper.entityToDto(b,
-                b.getUsuarioEncargado() != null ? usuarioMapper.entityToDto(b.getUsuarioEncargado()) : null) : null;
-    }
-
-    private MovimientoDtoResponse toDto(Movimiento m) {
-        return movimientoMapper.entityToDto(m,
-                usuarioMapper.entityToDto(m.getUsuario()),
-                toBodegaDto(m.getBodegaOrigen()),
-                toBodegaDto(m.getBodegaDestino()));
-    }
 
     @Override
     public MovimientoDtoResponse guardar(MovimientoDtoRequest dto) {
@@ -75,7 +62,12 @@ public class MovimientoServiceImpl implements MovimientoService {
 
         Movimiento movimiento = movimientoMapper.dtoToEntity(dto, usuario, bodegaOrigen, bodegaDestino);
         movimientoRepository.save(movimiento);
-        return toDto(movimiento);
+        return movimientoMapper.entityToDto(
+                movimiento,
+                usuarioMapper.entityToDto(movimiento.getUsuario()),
+                movimiento.getBodegaOrigen() != null ? bodegaMapper.entityToDto(movimiento.getBodegaOrigen(), usuarioMapper.entityToDto(movimiento.getBodegaOrigen().getUsuarioEncargado())) : null,
+                movimiento.getBodegaDestino() != null ? bodegaMapper.entityToDto(movimiento.getBodegaDestino(), usuarioMapper.entityToDto(movimiento.getBodegaDestino().getUsuarioEncargado())) : null
+        );
     }
 
     @Override
@@ -87,28 +79,62 @@ public class MovimientoServiceImpl implements MovimientoService {
 
     @Override
     public List<MovimientoDtoResponse> listar() {
-        return movimientoRepository.findAll().stream().map(this::toDto).toList();
+        return movimientoRepository.findAll().stream().map(m ->
+                movimientoMapper.entityToDto(
+                        m,
+                        usuarioMapper.entityToDto(m.getUsuario()),
+                        m.getBodegaOrigen() != null ? bodegaMapper.entityToDto(m.getBodegaOrigen(), usuarioMapper.entityToDto(m.getBodegaOrigen().getUsuarioEncargado())) : null,
+                        m.getBodegaDestino() != null ? bodegaMapper.entityToDto(m.getBodegaDestino(), usuarioMapper.entityToDto(m.getBodegaDestino().getUsuarioEncargado())) : null
+                )
+        ).toList();
     }
 
     @Override
     public MovimientoDtoResponse buscarId(Long id) {
-        return toDto(movimientoRepository.findById(id)
-                .orElseThrow(() -> new DatabaseRuleException("Movimiento no encontrado")));
+        Movimiento movimiento = movimientoRepository.findById(id)
+                .orElseThrow(() -> new DatabaseRuleException("Movimiento no encontrado"));
+        return movimientoMapper.entityToDto(
+                movimiento,
+                usuarioMapper.entityToDto(movimiento.getUsuario()),
+                movimiento.getBodegaOrigen() != null ? bodegaMapper.entityToDto(movimiento.getBodegaOrigen(), usuarioMapper.entityToDto(movimiento.getBodegaOrigen().getUsuarioEncargado())) : null,
+                movimiento.getBodegaDestino() != null ? bodegaMapper.entityToDto(movimiento.getBodegaDestino(), usuarioMapper.entityToDto(movimiento.getBodegaDestino().getUsuarioEncargado())) : null
+        );
     }
 
     @Override
     public List<MovimientoDtoResponse> buscarPorUsuario(Long usuarioId) {
-        return movimientoRepository.findByUsuarioId(usuarioId).stream().map(this::toDto).toList();
+        return movimientoRepository.findByUsuarioId(usuarioId).stream().map(m ->
+                movimientoMapper.entityToDto(
+                        m,
+                        usuarioMapper.entityToDto(m.getUsuario()),
+                        m.getBodegaOrigen() != null ? bodegaMapper.entityToDto(m.getBodegaOrigen(), usuarioMapper.entityToDto(m.getBodegaOrigen().getUsuarioEncargado())) : null,
+                        m.getBodegaDestino() != null ? bodegaMapper.entityToDto(m.getBodegaDestino(), usuarioMapper.entityToDto(m.getBodegaDestino().getUsuarioEncargado())) : null
+                )
+        ).toList();
     }
 
     @Override
     public List<MovimientoDtoResponse> buscarPorTipo(String tipoMovimiento) {
         TipoMovimiento tipo = TipoMovimiento.valueOf(tipoMovimiento.toLowerCase());
-        return movimientoRepository.findByTipoMovimiento(tipo).stream().map(this::toDto).toList();
+        return movimientoRepository.findByTipoMovimiento(tipo).stream().map(m ->
+                movimientoMapper.entityToDto(
+                        m,
+                        usuarioMapper.entityToDto(m.getUsuario()),
+                        m.getBodegaOrigen() != null ? bodegaMapper.entityToDto(m.getBodegaOrigen(), usuarioMapper.entityToDto(m.getBodegaOrigen().getUsuarioEncargado())) : null,
+                        m.getBodegaDestino() != null ? bodegaMapper.entityToDto(m.getBodegaDestino(), usuarioMapper.entityToDto(m.getBodegaDestino().getUsuarioEncargado())) : null
+                )
+        ).toList();
     }
 
     @Override
     public List<MovimientoDtoResponse> buscarPorFechas(LocalDateTime inicio, LocalDateTime fin) {
-        return movimientoRepository.findByFechaBetween(inicio, fin).stream().map(this::toDto).toList();
+        return movimientoRepository.findByFechaBetween(inicio, fin).stream().map(m ->
+                movimientoMapper.entityToDto(
+                        m,
+                        usuarioMapper.entityToDto(m.getUsuario()),
+                        m.getBodegaOrigen() != null ? bodegaMapper.entityToDto(m.getBodegaOrigen(), usuarioMapper.entityToDto(m.getBodegaOrigen().getUsuarioEncargado())) : null,
+                        m.getBodegaDestino() != null ? bodegaMapper.entityToDto(m.getBodegaDestino(), usuarioMapper.entityToDto(m.getBodegaDestino().getUsuarioEncargado())) : null
+                )
+        ).toList();
     }
 }

@@ -34,20 +34,20 @@ public class MovimientoDetalleServiceImpl implements MovimientoDetalleService {
     @Override
     @Transactional
     public MovimientoDetalleDtoResponse guardar(MovimientoDetalleDtoRequest dto) {
-        Movimiento movimiento = movimientoRepository.findById(dto.movimientoId()).orElseThrow(() -> new DatabaseRuleException("Movimiento no encontrado"));
-        Producto producto = productoRepository.findById(dto.productoId()).orElseThrow(() -> new DatabaseRuleException("Producto no encontrado"));
+        Movimiento movimiento = movimientoRepository.findById(dto.movimientoId())
+                .orElseThrow(() -> new DatabaseRuleException("Movimiento no encontrado"));
+        Producto producto = productoRepository.findById(dto.productoId())
+                .orElseThrow(() -> new DatabaseRuleException("Producto no encontrado"));
 
         if (movimiento.getTipoMovimiento() == TipoMovimiento.entrada) {
             Inventario inv = inventarioRepository.findByBodegaIdAndProductoId(
                     movimiento.getBodegaDestino().getId(), producto.getId());
             if (inv == null) {
-                // No existe — se crea automáticamente con la cantidad inicial
                 inv = new Inventario();
                 inv.setBodega(movimiento.getBodegaDestino());
                 inv.setProducto(producto);
                 inv.setStock(dto.cantidad());
             } else {
-                // Ya existe — se suma al stock actual
                 inv.setStock(inv.getStock() + dto.cantidad());
             }
             inventarioRepository.save(inv);
@@ -73,7 +73,6 @@ public class MovimientoDetalleServiceImpl implements MovimientoDetalleService {
             Inventario invDestino = inventarioRepository.findByBodegaIdAndProductoId(
                     movimiento.getBodegaDestino().getId(), producto.getId());
             if (invDestino == null) {
-                // No existe en destino — se crea automáticamente
                 invDestino = new Inventario();
                 invDestino.setBodega(movimiento.getBodegaDestino());
                 invDestino.setProducto(producto);
@@ -89,29 +88,16 @@ public class MovimientoDetalleServiceImpl implements MovimientoDetalleService {
         MovimientoDetalle detalle = detalleMapper.dtoToEntity(dto, movimiento, producto);
         detalleRepository.save(detalle);
 
-        // Convertir relaciones para el response
-        var categoriaDto = categoriaMapper.entityToDto(producto.getCategoria());
-        var productoDto = productoMapper.entityToDto(producto, categoriaDto);
-
-        var usuarioDto = usuarioMapper.entityToDto(movimiento.getUsuario());
-
-        var origenDto = movimiento.getBodegaOrigen() != null
-                ? bodegaMapper.entityToDto(movimiento.getBodegaOrigen(),
-                    movimiento.getBodegaOrigen().getUsuarioEncargado() != null
-                        ? usuarioMapper.entityToDto(movimiento.getBodegaOrigen().getUsuarioEncargado())
-                        : null)
-                : null;
-
-        var destinoDto = movimiento.getBodegaDestino() != null
-                ? bodegaMapper.entityToDto(movimiento.getBodegaDestino(),
-                    movimiento.getBodegaDestino().getUsuarioEncargado() != null
-                        ? usuarioMapper.entityToDto(movimiento.getBodegaDestino().getUsuarioEncargado())
-                        : null)
-                : null;
-
-        var movimientoDto = movimientoMapper.entityToDto(movimiento, usuarioDto, origenDto, destinoDto);
-
-        return detalleMapper.entityToDto(detalle, movimientoDto, productoDto);
+        return detalleMapper.entityToDto(
+                detalle,
+                movimientoMapper.entityToDto(
+                        movimiento,
+                        usuarioMapper.entityToDto(movimiento.getUsuario()),
+                        movimiento.getBodegaOrigen() != null ? bodegaMapper.entityToDto(movimiento.getBodegaOrigen(), usuarioMapper.entityToDto(movimiento.getBodegaOrigen().getUsuarioEncargado())) : null,
+                        movimiento.getBodegaDestino() != null ? bodegaMapper.entityToDto(movimiento.getBodegaDestino(), usuarioMapper.entityToDto(movimiento.getBodegaDestino().getUsuarioEncargado())) : null
+                ),
+                productoMapper.entityToDto(producto, categoriaMapper.entityToDto(producto.getCategoria()))
+        );
     }
 
     @Override
@@ -123,94 +109,66 @@ public class MovimientoDetalleServiceImpl implements MovimientoDetalleService {
 
     @Override
     public List<MovimientoDetalleDtoResponse> listar() {
-        return detalleRepository.findAll().stream().map(d -> {
-            var categoriaDto = categoriaMapper.entityToDto(d.getProducto().getCategoria());
-            var productoDto = productoMapper.entityToDto(d.getProducto(), categoriaDto);
-            var usuarioDto = usuarioMapper.entityToDto(d.getMovimiento().getUsuario());
-            var origenDto = d.getMovimiento().getBodegaOrigen() != null
-                    ? bodegaMapper.entityToDto(d.getMovimiento().getBodegaOrigen(),
-                        d.getMovimiento().getBodegaOrigen().getUsuarioEncargado() != null
-                            ? usuarioMapper.entityToDto(d.getMovimiento().getBodegaOrigen().getUsuarioEncargado())
-                            : null)
-                    : null;
-            var destinoDto = d.getMovimiento().getBodegaDestino() != null
-                    ? bodegaMapper.entityToDto(d.getMovimiento().getBodegaDestino(),
-                        d.getMovimiento().getBodegaDestino().getUsuarioEncargado() != null
-                            ? usuarioMapper.entityToDto(d.getMovimiento().getBodegaDestino().getUsuarioEncargado())
-                            : null)
-                    : null;
-            var movimientoDto = movimientoMapper.entityToDto(d.getMovimiento(), usuarioDto, origenDto, destinoDto);
-            return detalleMapper.entityToDto(d, movimientoDto, productoDto);
-        }).toList();
+        return detalleRepository.findAll().stream().map(d ->
+                detalleMapper.entityToDto(
+                        d,
+                        movimientoMapper.entityToDto(
+                                d.getMovimiento(),
+                                usuarioMapper.entityToDto(d.getMovimiento().getUsuario()),
+                                d.getMovimiento().getBodegaOrigen() != null ? bodegaMapper.entityToDto(d.getMovimiento().getBodegaOrigen(), usuarioMapper.entityToDto(d.getMovimiento().getBodegaOrigen().getUsuarioEncargado())) : null,
+                                d.getMovimiento().getBodegaDestino() != null ? bodegaMapper.entityToDto(d.getMovimiento().getBodegaDestino(), usuarioMapper.entityToDto(d.getMovimiento().getBodegaDestino().getUsuarioEncargado())) : null
+                        ),
+                        productoMapper.entityToDto(d.getProducto(), categoriaMapper.entityToDto(d.getProducto().getCategoria()))
+                )
+        ).toList();
     }
 
     @Override
     public MovimientoDetalleDtoResponse buscarId(Long id) {
         MovimientoDetalle detalle = detalleRepository.findById(id)
                 .orElseThrow(() -> new DatabaseRuleException("Detalle de movimiento no encontrado"));
-        var categoriaDto = categoriaMapper.entityToDto(detalle.getProducto().getCategoria());
-        var productoDto = productoMapper.entityToDto(detalle.getProducto(), categoriaDto);
-        var usuarioDto = usuarioMapper.entityToDto(detalle.getMovimiento().getUsuario());
-        var origenDto = detalle.getMovimiento().getBodegaOrigen() != null
-                ? bodegaMapper.entityToDto(detalle.getMovimiento().getBodegaOrigen(),
-                    detalle.getMovimiento().getBodegaOrigen().getUsuarioEncargado() != null
-                        ? usuarioMapper.entityToDto(detalle.getMovimiento().getBodegaOrigen().getUsuarioEncargado())
-                        : null)
-                : null;
-        var destinoDto = detalle.getMovimiento().getBodegaDestino() != null
-                ? bodegaMapper.entityToDto(detalle.getMovimiento().getBodegaDestino(),
-                    detalle.getMovimiento().getBodegaDestino().getUsuarioEncargado() != null
-                        ? usuarioMapper.entityToDto(detalle.getMovimiento().getBodegaDestino().getUsuarioEncargado())
-                        : null)
-                : null;
-        var movimientoDto = movimientoMapper.entityToDto(detalle.getMovimiento(), usuarioDto, origenDto, destinoDto);
-        return detalleMapper.entityToDto(detalle, movimientoDto, productoDto);
+        return detalleMapper.entityToDto(
+                detalle,
+                movimientoMapper.entityToDto(
+                        detalle.getMovimiento(),
+                        usuarioMapper.entityToDto(detalle.getMovimiento().getUsuario()),
+                        detalle.getMovimiento().getBodegaOrigen() != null ? bodegaMapper.entityToDto(detalle.getMovimiento().getBodegaOrigen(), usuarioMapper.entityToDto(detalle.getMovimiento().getBodegaOrigen().getUsuarioEncargado())) : null,
+                        detalle.getMovimiento().getBodegaDestino() != null ? bodegaMapper.entityToDto(detalle.getMovimiento().getBodegaDestino(), usuarioMapper.entityToDto(detalle.getMovimiento().getBodegaDestino().getUsuarioEncargado())) : null
+                ),
+                productoMapper.entityToDto(detalle.getProducto(), categoriaMapper.entityToDto(detalle.getProducto().getCategoria()))
+        );
     }
 
     @Override
     public List<MovimientoDetalleDtoResponse> buscarPorMovimiento(Long movimientoId) {
-        return detalleRepository.findByMovimientoId(movimientoId).stream().map(d -> {
-            var categoriaDto = categoriaMapper.entityToDto(d.getProducto().getCategoria());
-            var productoDto = productoMapper.entityToDto(d.getProducto(), categoriaDto);
-            var usuarioDto = usuarioMapper.entityToDto(d.getMovimiento().getUsuario());
-            var origenDto = d.getMovimiento().getBodegaOrigen() != null
-                    ? bodegaMapper.entityToDto(d.getMovimiento().getBodegaOrigen(),
-                        d.getMovimiento().getBodegaOrigen().getUsuarioEncargado() != null
-                            ? usuarioMapper.entityToDto(d.getMovimiento().getBodegaOrigen().getUsuarioEncargado())
-                            : null)
-                    : null;
-            var destinoDto = d.getMovimiento().getBodegaDestino() != null
-                    ? bodegaMapper.entityToDto(d.getMovimiento().getBodegaDestino(),
-                        d.getMovimiento().getBodegaDestino().getUsuarioEncargado() != null
-                            ? usuarioMapper.entityToDto(d.getMovimiento().getBodegaDestino().getUsuarioEncargado())
-                            : null)
-                    : null;
-            var movimientoDto = movimientoMapper.entityToDto(d.getMovimiento(), usuarioDto, origenDto, destinoDto);
-            return detalleMapper.entityToDto(d, movimientoDto, productoDto);
-        }).toList();
+        return detalleRepository.findByMovimientoId(movimientoId).stream().map(d ->
+                detalleMapper.entityToDto(
+                        d,
+                        movimientoMapper.entityToDto(
+                                d.getMovimiento(),
+                                usuarioMapper.entityToDto(d.getMovimiento().getUsuario()),
+                                d.getMovimiento().getBodegaOrigen() != null ? bodegaMapper.entityToDto(d.getMovimiento().getBodegaOrigen(), usuarioMapper.entityToDto(d.getMovimiento().getBodegaOrigen().getUsuarioEncargado())) : null,
+                                d.getMovimiento().getBodegaDestino() != null ? bodegaMapper.entityToDto(d.getMovimiento().getBodegaDestino(), usuarioMapper.entityToDto(d.getMovimiento().getBodegaDestino().getUsuarioEncargado())) : null
+                        ),
+                        productoMapper.entityToDto(d.getProducto(), categoriaMapper.entityToDto(d.getProducto().getCategoria()))
+                )
+        ).toList();
     }
 
     @Override
     public List<MovimientoDetalleDtoResponse> buscarPorProducto(Long productoId) {
-        return detalleRepository.findByProductoId(productoId).stream().map(d -> {
-            var categoriaDto = categoriaMapper.entityToDto(d.getProducto().getCategoria());
-            var productoDto = productoMapper.entityToDto(d.getProducto(), categoriaDto);
-            var usuarioDto = usuarioMapper.entityToDto(d.getMovimiento().getUsuario());
-            var origenDto = d.getMovimiento().getBodegaOrigen() != null
-                    ? bodegaMapper.entityToDto(d.getMovimiento().getBodegaOrigen(),
-                        d.getMovimiento().getBodegaOrigen().getUsuarioEncargado() != null
-                            ? usuarioMapper.entityToDto(d.getMovimiento().getBodegaOrigen().getUsuarioEncargado())
-                            : null)
-                    : null;
-            var destinoDto = d.getMovimiento().getBodegaDestino() != null
-                    ? bodegaMapper.entityToDto(d.getMovimiento().getBodegaDestino(),
-                        d.getMovimiento().getBodegaDestino().getUsuarioEncargado() != null
-                            ? usuarioMapper.entityToDto(d.getMovimiento().getBodegaDestino().getUsuarioEncargado())
-                            : null)
-                    : null;
-            var movimientoDto = movimientoMapper.entityToDto(d.getMovimiento(), usuarioDto, origenDto, destinoDto);
-            return detalleMapper.entityToDto(d, movimientoDto, productoDto);
-        }).toList();
+        return detalleRepository.findByProductoId(productoId).stream().map(d ->
+                detalleMapper.entityToDto(
+                        d,
+                        movimientoMapper.entityToDto(
+                                d.getMovimiento(),
+                                usuarioMapper.entityToDto(d.getMovimiento().getUsuario()),
+                                d.getMovimiento().getBodegaOrigen() != null ? bodegaMapper.entityToDto(d.getMovimiento().getBodegaOrigen(), usuarioMapper.entityToDto(d.getMovimiento().getBodegaOrigen().getUsuarioEncargado())) : null,
+                                d.getMovimiento().getBodegaDestino() != null ? bodegaMapper.entityToDto(d.getMovimiento().getBodegaDestino(), usuarioMapper.entityToDto(d.getMovimiento().getBodegaDestino().getUsuarioEncargado())) : null
+                        ),
+                        productoMapper.entityToDto(d.getProducto(), categoriaMapper.entityToDto(d.getProducto().getCategoria()))
+                )
+        ).toList();
     }
 
     @Override

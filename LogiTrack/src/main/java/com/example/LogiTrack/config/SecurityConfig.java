@@ -22,7 +22,7 @@ public class SecurityConfig {
     // Este filtro es el que va a interceptar y leer el token en cada petición
     private final JwtFilter jwtFilter;
 
-    @Bean // Es vital dejar el @Bean para que Spring ejecute este método al arrancar la app
+    @Bean // Es vital dejar el @Bean para que Spring ejecute este metodo al arrancar la app
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         /*
          * Aquí estoy configurando toda la seguridad de la aplicación.

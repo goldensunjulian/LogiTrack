@@ -65,8 +65,7 @@ public class AuthController {
             throw new BussinesRuleException("El email ya está registrado");
         if (credencialesRepository.existsByUsername(request.username()))
             throw new BussinesRuleException("El username ya está tomado");
-        Rol rol = rolRepository.findById(request.rolId())
-                .orElseThrow(() -> new DatabaseRuleException("Rol no encontrado"));
+        Rol rol = rolRepository.findById(request.rolId()).orElseThrow(() -> new DatabaseRuleException("Rol no encontrado"));
         Usuario usuario = new Usuario();
         usuario.setNombre(request.nombre());
         usuario.setEmail(request.email());
@@ -78,7 +77,6 @@ public class AuthController {
         credenciales.setUsuario(usuario);
         credenciales.setRol(rol);
         credencialesRepository.save(credenciales);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(Map.of("mensaje", "Empleado creado correctamente", "username", credenciales.getUsername()));
+        return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("mensaje", "Empleado creado correctamente", "username", credenciales.getUsername()));
     }
 }

@@ -14,7 +14,4 @@ public interface AuditoriaService {
     List<AuditoriaDtoResponse> buscarPorUsuario(Long usuarioId);
     List<AuditoriaDtoResponse> buscarPorTipoOperacion(TipoOperacion tipoOperacion);
 
-    // Metodo que llaman todos los services para registrar cambios automáticamente
-    void registrar(TipoOperacion operacion, String entidad, Long entidadId,
-                   Usuario usuario, String valoresAntes, String valoresDespues);
 }
